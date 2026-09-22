@@ -1,0 +1,1018 @@
+[
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$fbu7Nm1mCZH1o3giTIyMqb$eobKanxUfRcj4kXnirtlaVSEvTyqKV3FmJX3RAo7WJI=",
+    "last_login": "2026-09-16T12:14:59.538Z",
+    "is_superuser": true,
+    "username": "admin123",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-09-15T10:46:25.022Z",
+    "email": "admin123@gmail.com",
+    "is_email_verified": false,
+    "temp_otp": null,
+    "is_activated": false,
+    "otp_created_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$zrK3zr3Y0psq4yGJI1pdOd$QAemX1Hoo5m493QawME7hKpK65j/HIt53bxmBPTn7W8=",
+    "last_login": "2026-09-18T02:46:46.004Z",
+    "is_superuser": false,
+    "username": "sumitkumar",
+    "first_name": "sumit",
+    "last_name": "kumar",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-15T11:19:18.138Z",
+    "email": "sumitsohal963@gmail.com",
+    "is_email_verified": false,
+    "temp_otp": null,
+    "is_activated": false,
+    "otp_created_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$oRnDFr6BJG7X26JDWxSCKb$QJhmVTuoji2X6aa1PrqzF95PRR3O7TaOj1JtKh1E28o=",
+    "last_login": "2026-09-16T01:57:02.562Z",
+    "is_superuser": false,
+    "username": "vanshsohal",
+    "first_name": "vansh",
+    "last_name": "sohal",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-15T11:43:59.886Z",
+    "email": "vanshsohal2505@gmail.com",
+    "is_email_verified": false,
+    "temp_otp": null,
+    "is_activated": false,
+    "otp_created_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$5mLD9zhrFjfQs6ITq65cKV$o0+YNGQiKSmuUiSXvmVBOMHMovHUGn7UNNVxT3S8668=",
+    "last_login": "2026-09-16T12:21:11.949Z",
+    "is_superuser": false,
+    "username": "test",
+    "first_name": "test",
+    "last_name": "user",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-16T12:17:48.942Z",
+    "email": "xzpsdybljmkbensizl@vtmpj.net",
+    "is_email_verified": false,
+    "temp_otp": null,
+    "is_activated": false,
+    "otp_created_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.profile",
+  "pk": 1,
+  "fields": {
+    "name": [
+      "sumitkumar"
+    ],
+    "phone": null,
+    "profile_picture": "default/x.jpg",
+    "slug": "sumitkumar"
+  }
+},
+{
+  "model": "accounts.profile",
+  "pk": 3,
+  "fields": {
+    "name": [
+      "vanshsohal"
+    ],
+    "phone": null,
+    "profile_picture": "default/x.jpg",
+    "slug": "vanshsohal"
+  }
+},
+{
+  "model": "accounts.profile",
+  "pk": 4,
+  "fields": {
+    "name": [
+      "test"
+    ],
+    "phone": null,
+    "profile_picture": "default/x.jpg",
+    "slug": "test"
+  }
+},
+{
+  "model": "accounts.address",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "name": "vansh",
+    "phone": "7590951315",
+    "pincode": "160059",
+    "locality": "",
+    "address_line": "1226, RohtakVibe, Sector 60",
+    "city": "Mohali",
+    "state": "Punjab",
+    "landmark": "",
+    "address_type": "HOME",
+    "is_default": false,
+    "latitude": "30.7124147",
+    "longitude": "76.7142919",
+    "area": "Sector 60",
+    "formatted_address": "1226, RohtakVibe, Sector 60, Mohali, S.A.S. Nagar (Mohali) Tahsil, Sahibzada Ajit Singh Nagar, Punjab, 160059, India",
+    "slug": "vansh-mohali-160059"
+  }
+},
+{
+  "model": "accounts.wishlist",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "product": 8,
+    "created_at": "2026-09-16T07:09:31.198Z",
+    "slug": "sumitkumar-apple-iphone-16-pro"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 1,
+  "fields": {
+    "name": "T-Shirts",
+    "slug": "t-shirts"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 2,
+  "fields": {
+    "name": "Shirts",
+    "slug": "shirts"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 3,
+  "fields": {
+    "name": "Jeans",
+    "slug": "jeans"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 4,
+  "fields": {
+    "name": "Shoes",
+    "slug": "shoes"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 5,
+  "fields": {
+    "name": "Sneakers",
+    "slug": "sneakers"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 6,
+  "fields": {
+    "name": "smartphones",
+    "slug": "smartphones"
+  }
+},
+{
+  "model": "products.color",
+  "pk": 1,
+  "fields": {
+    "name": "Black",
+    "hex_code": "#000000",
+    "slug": "black"
+  }
+},
+{
+  "model": "products.color",
+  "pk": 2,
+  "fields": {
+    "name": "White",
+    "hex_code": "#ffffff",
+    "slug": "white"
+  }
+},
+{
+  "model": "products.color",
+  "pk": 3,
+  "fields": {
+    "name": "Blue",
+    "hex_code": "#1E3A8A",
+    "slug": "blue"
+  }
+},
+{
+  "model": "products.color",
+  "pk": 4,
+  "fields": {
+    "name": "Dark Blue",
+    "hex_code": "#17255",
+    "slug": "dark-blue"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 1,
+  "fields": {
+    "name": "Classic Black T-Shirt",
+    "slug": "classic-black-t-shirt",
+    "image": "product/classic_white.jpg",
+    "description": "Premium cotton black T-shirt with a comfortable regular fit, suitable for everyday casual wear.",
+    "brand": "UrbanStyle",
+    "is_active": true,
+    "created_at": "2026-09-15T10:54:22.783Z",
+    "cat": [
+      1
+    ]
+  }
+},
+{
+  "model": "products.product",
+  "pk": 2,
+  "fields": {
+    "name": "Premium White Shirt",
+    "slug": "premium-white-shirt",
+    "image": "product/premium_shirt.jpg",
+    "description": "Elegant white casual shirt made with lightweight fabric for a clean and comfortable appearance.",
+    "brand": "Protonic",
+    "is_active": true,
+    "created_at": "2026-09-15T10:56:49.560Z",
+    "cat": [
+      2
+    ]
+  }
+},
+{
+  "model": "products.product",
+  "pk": 3,
+  "fields": {
+    "name": "AirFlex Running Shoes",
+    "slug": "airflex-running-shoes",
+    "image": "product/airFlexrunning.jpg",
+    "description": "Lightweight running shoes designed for daily training, jogging and comfortable long-distance runs.",
+    "brand": "Nike",
+    "is_active": true,
+    "created_at": "2026-09-15T10:58:41.331Z",
+    "cat": [
+      4
+    ]
+  }
+},
+{
+  "model": "products.product",
+  "pk": 4,
+  "fields": {
+    "name": "Ultraboost Sport Shoes",
+    "slug": "ultraboost-sport-shoes",
+    "image": "product/ultraboost.jpg",
+    "description": "Comfortable sports shoes featuring a cushioned sole for running, workouts and everyday activities.",
+    "brand": "Adidas",
+    "is_active": true,
+    "created_at": "2026-09-15T10:59:39.758Z",
+    "cat": [
+      4
+    ]
+  }
+},
+{
+  "model": "products.product",
+  "pk": 5,
+  "fields": {
+    "name": "Classic Slim Fit Jeans",
+    "slug": "classic-slim-fit-jeans",
+    "image": "media/product/jean_1_iyehiw",
+    "description": "Classic slim-fit blue jeans made from comfortable stretch denim, suitable for everyday casual wear.",
+    "brand": "DenimCo",
+    "is_active": true,
+    "created_at": "2026-09-15T11:01:02.086Z",
+    "cat": [
+      3
+    ]
+  }
+},
+{
+  "model": "products.product",
+  "pk": 6,
+  "fields": {
+    "name": "Dark Blue Skinny Jeans",
+    "slug": "dark-blue-skinny-jeans",
+    "image": "product/dark_blue.jpg",
+    "description": "Modern dark-blue skinny jeans featuring a stretchable denim fabric and a comfortable tapered fit.",
+    "brand": "UrbanDenim",
+    "is_active": true,
+    "created_at": "2026-09-15T11:02:43.847Z",
+    "cat": [
+      3
+    ]
+  }
+},
+{
+  "model": "products.product",
+  "pk": 8,
+  "fields": {
+    "name": "Apple iPhone 16 Pro",
+    "slug": "apple-iphone-16-pro",
+    "image": "media/product/iphone16_bwl7ed",
+    "description": "The Apple iPhone 16 Pro features a titanium design, powerful A18 Pro chip, advanced camera system, and a Super Retina XDR display.",
+    "brand": "Apple",
+    "is_active": true,
+    "created_at": "2026-09-16T06:29:45.186Z",
+    "cat": [
+      6
+    ]
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 1,
+  "fields": {
+    "product": 6,
+    "color": 4,
+    "size": "28",
+    "sku": "DBSJ-28-BLU",
+    "slug": "dark-blue-skinny-jeans-dark-blue-28-dbsj-28-blu",
+    "is_active": true,
+    "price": "1499.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 2,
+  "fields": {
+    "product": 6,
+    "color": 4,
+    "size": "30",
+    "sku": "DBSJ-30-BLU",
+    "slug": "dark-blue-skinny-jeans-dark-blue-30-dbsj-30-blu",
+    "is_active": true,
+    "price": "1499.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 3,
+  "fields": {
+    "product": 6,
+    "color": 4,
+    "size": "34",
+    "sku": "DBSJ-34-BLU",
+    "slug": "dark-blue-skinny-jeans-dark-blue-34-dbsj-34-blu",
+    "is_active": true,
+    "price": "1499.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 4,
+  "fields": {
+    "product": 5,
+    "color": 3,
+    "size": "30",
+    "sku": "CSFJ-30-BLU",
+    "slug": "classic-slim-fit-jeans-blue-30-csfj-30-blu",
+    "is_active": true,
+    "price": "1299.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 5,
+  "fields": {
+    "product": 5,
+    "color": 3,
+    "size": "32",
+    "sku": "CSFJ-32-BLU",
+    "slug": "classic-slim-fit-jeans-blue-32-csfj-32-blu",
+    "is_active": true,
+    "price": "1299.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 6,
+  "fields": {
+    "product": 5,
+    "color": 3,
+    "size": "34",
+    "sku": "CSFJ-34-BLU",
+    "slug": "classic-slim-fit-jeans-blue-34-csfj-34-blu",
+    "is_active": true,
+    "price": "1299.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 7,
+  "fields": {
+    "product": 3,
+    "color": 2,
+    "size": "7",
+    "sku": "AFRS-7-WHT",
+    "slug": "airflex-running-shoes-white-7-afrs-7-wht",
+    "is_active": true,
+    "price": "2499.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 8,
+  "fields": {
+    "product": 3,
+    "color": 2,
+    "size": "8",
+    "sku": "AFRS-8-WHT",
+    "slug": "airflex-running-shoes-white-8-afrs-8-wht",
+    "is_active": true,
+    "price": "2499.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 9,
+  "fields": {
+    "product": 3,
+    "color": 1,
+    "size": "7",
+    "sku": "AFRS-7-BLK",
+    "slug": "airflex-running-shoes-black-7-afrs-7-blk",
+    "is_active": true,
+    "price": "1999.00"
+  }
+},
+{
+  "model": "products.productvariant",
+  "pk": 10,
+  "fields": {
+    "product": 8,
+    "color": 2,
+    "size": "512GB",
+    "sku": "APL-IP16P-512-NAT",
+    "slug": "apple-iphone-16-pro-white-512gb-apl-ip16p-512-nat",
+    "is_active": true,
+    "price": "139900.00"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 1,
+  "fields": {
+    "variant": 1,
+    "quantity": 24,
+    "reserved_quantity": 0,
+    "slug": "stock-dark-blue-skinny-jeans-dark-blue-28-dbsj-28-blu"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 2,
+  "fields": {
+    "variant": 2,
+    "quantity": 30,
+    "reserved_quantity": 0,
+    "slug": "stock-dark-blue-skinny-jeans-dark-blue-30-dbsj-30-blu"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 3,
+  "fields": {
+    "variant": 3,
+    "quantity": 35,
+    "reserved_quantity": 0,
+    "slug": "stock-dark-blue-skinny-jeans-dark-blue-34-dbsj-34-blu"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 4,
+  "fields": {
+    "variant": 4,
+    "quantity": 35,
+    "reserved_quantity": 0,
+    "slug": "stock-classic-slim-fit-jeans-blue-30-csfj-30-blu"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 5,
+  "fields": {
+    "variant": 5,
+    "quantity": 30,
+    "reserved_quantity": 0,
+    "slug": "stock-classic-slim-fit-jeans-blue-32-csfj-32-blu"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 6,
+  "fields": {
+    "variant": 6,
+    "quantity": 40,
+    "reserved_quantity": 0,
+    "slug": "stock-classic-slim-fit-jeans-blue-34-csfj-34-blu"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 7,
+  "fields": {
+    "variant": 7,
+    "quantity": 22,
+    "reserved_quantity": 0,
+    "slug": "stock-airflex-running-shoes-white-7-afrs-7-wht"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 8,
+  "fields": {
+    "variant": 8,
+    "quantity": 20,
+    "reserved_quantity": 0,
+    "slug": "stock-airflex-running-shoes-white-8-afrs-8-wht"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 9,
+  "fields": {
+    "variant": 9,
+    "quantity": 20,
+    "reserved_quantity": 0,
+    "slug": "stock-airflex-running-shoes-black-7-afrs-7-blk"
+  }
+},
+{
+  "model": "products.stock",
+  "pk": 10,
+  "fields": {
+    "variant": 10,
+    "quantity": 20,
+    "reserved_quantity": 0,
+    "slug": "stock-apple-iphone-16-pro-white-512gb-apl-ip16p-512-nat"
+  }
+},
+{
+  "model": "products.productimage",
+  "pk": 2,
+  "fields": {
+    "product": 8,
+    "image": "media/product/gallery/iphone16_4_xpzlug",
+    "alt_text": "",
+    "created_at": "2026-09-16T07:38:34.984Z"
+  }
+},
+{
+  "model": "products.productimage",
+  "pk": 3,
+  "fields": {
+    "product": 8,
+    "image": "media/product/gallery/iphone16_2_nyejkz",
+    "alt_text": "",
+    "created_at": "2026-09-16T07:38:35.828Z"
+  }
+},
+{
+  "model": "products.productimage",
+  "pk": 4,
+  "fields": {
+    "product": 8,
+    "image": "media/product/gallery/iphone16_5_gashsw",
+    "alt_text": "",
+    "created_at": "2026-09-16T07:38:36.587Z"
+  }
+},
+{
+  "model": "products.productimage",
+  "pk": 5,
+  "fields": {
+    "product": 8,
+    "image": "media/product/gallery/iphone16_3_fchtq3",
+    "alt_text": "",
+    "created_at": "2026-09-16T07:38:37.405Z"
+  }
+},
+{
+  "model": "products.productimage",
+  "pk": 6,
+  "fields": {
+    "product": 5,
+    "image": "media/product/gallery/jean_2_k5w2wx",
+    "alt_text": "",
+    "created_at": "2026-09-16T08:50:19.678Z"
+  }
+},
+{
+  "model": "products.productimage",
+  "pk": 7,
+  "fields": {
+    "product": 5,
+    "image": "media/product/gallery/jean_3_oamexy",
+    "alt_text": "",
+    "created_at": "2026-09-16T08:50:20.901Z"
+  }
+},
+{
+  "model": "cart.cart",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "vanshsohal"
+    ],
+    "created_at": "2026-09-16T02:52:36.948Z",
+    "slug": "vanshsohal-cart"
+  }
+},
+{
+  "model": "cart.cart",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "created_at": "2026-09-18T02:11:38.797Z",
+    "slug": "sumitkumar-cart"
+  }
+},
+{
+  "model": "order.order",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order_number": "ORD-202609180213-924E34",
+    "slug": "order-ord-202609180213-924e34",
+    "status": "pending_payment",
+    "total_amount": "1499.00",
+    "coupon": null,
+    "discount_amount": "0.00",
+    "shipping_name": "vansh",
+    "shipping_phone": "7590951315",
+    "shipping_city": "Mohali",
+    "shipping_pincode": "160059",
+    "shipping_address": "1226, RohtakVibe, Sector 60, Mohali, Punjab - 160059",
+    "created_at": "2026-09-18T02:13:02.347Z",
+    "updated_at": "2026-09-18T02:13:02.347Z"
+  }
+},
+{
+  "model": "order.order",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order_number": "ORD-202609180241-042B65",
+    "slug": "order-ord-202609180241-042b65",
+    "status": "confirmed",
+    "total_amount": "1499.00",
+    "coupon": null,
+    "discount_amount": "0.00",
+    "shipping_name": "vansh",
+    "shipping_phone": "7590951315",
+    "shipping_city": "Mohali",
+    "shipping_pincode": "160059",
+    "shipping_address": "1226, RohtakVibe, Sector 60, Mohali, Punjab - 160059",
+    "created_at": "2026-09-18T02:41:53.507Z",
+    "updated_at": "2026-09-18T02:41:53.507Z"
+  }
+},
+{
+  "model": "order.orderitem",
+  "pk": 1,
+  "fields": {
+    "order": 1,
+    "variant": 1,
+    "quantity": 1,
+    "price": "1499.00",
+    "slug": "ord-202609180213-924e34-dark-blue-skinny-jeans-dbsj-28-blu"
+  }
+},
+{
+  "model": "order.orderitem",
+  "pk": 2,
+  "fields": {
+    "order": 2,
+    "variant": 1,
+    "quantity": 1,
+    "price": "1499.00",
+    "slug": "ord-202609180241-042b65-dark-blue-skinny-jeans-dbsj-28-blu"
+  }
+},
+{
+  "model": "payment.payment",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order": 1,
+    "payment_method": "online",
+    "transaction_id": null,
+    "gateway_order_id": "order_TdKYpITt6idgn3",
+    "gateway_payment_id": null,
+    "gateway_signature": null,
+    "currency": "INR",
+    "amount": "1499.00",
+    "status": "pending",
+    "paid_at": null,
+    "created_at": "2026-09-18T02:13:04.542Z",
+    "updated_at": "2026-09-18T02:13:04.542Z",
+    "slug": "ord-202609180213-924e34-online"
+  }
+},
+{
+  "model": "payment.payment",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order": 2,
+    "payment_method": "online",
+    "transaction_id": "pay_TdLISHFxirlId5",
+    "gateway_order_id": "order_TdL3K52oNBIl2D",
+    "gateway_payment_id": "pay_TdLISHFxirlId5",
+    "gateway_signature": "f27d339a80d8b6737606f17241ad052463aefeb6ebc29e9ffd0360a5985f3345",
+    "currency": "INR",
+    "amount": "1499.00",
+    "status": "completed",
+    "paid_at": "2026-09-18T02:57:06.875Z",
+    "created_at": "2026-09-18T02:41:56.767Z",
+    "updated_at": "2026-09-18T02:57:06.875Z",
+    "slug": "ord-202609180241-042b65-online"
+  }
+},
+{
+  "model": "coupons.couponconfiguration",
+  "pk": 1,
+  "fields": {
+    "weekly_user_limit": 5,
+    "updated_at": "2026-09-16T02:52:37.000Z"
+  }
+},
+{
+  "model": "chat.conversation",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "vanshsohal"
+    ],
+    "status": "open",
+    "slug": "ticket-vanshsohal-757b836f",
+    "created_at": "2026-09-15T11:55:51.674Z",
+    "updated_at": "2026-09-15T11:55:51.674Z"
+  }
+},
+{
+  "model": "chat.conversation",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "vanshsohal"
+    ],
+    "status": "open",
+    "slug": "ticket-vanshsohal-43142b00",
+    "created_at": "2026-09-15T11:55:59.439Z",
+    "updated_at": "2026-09-16T02:51:42.911Z"
+  }
+},
+{
+  "model": "chat.conversation",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "status": "open",
+    "slug": "ticket-sumitkumar-de4acd47",
+    "created_at": "2026-09-16T06:14:48.922Z",
+    "updated_at": "2026-09-16T06:14:48.922Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 1,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "hy",
+    "is_read": true,
+    "created_at": "2026-09-16T01:58:46.658Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 2,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "admin123"
+    ],
+    "message": "ok",
+    "is_read": true,
+    "created_at": "2026-09-16T01:59:27.257Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 3,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "hy",
+    "is_read": true,
+    "created_at": "2026-09-16T02:09:09.733Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 4,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "hhh",
+    "is_read": true,
+    "created_at": "2026-09-16T02:35:59.209Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 5,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "h",
+    "is_read": true,
+    "created_at": "2026-09-16T02:41:53.606Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 6,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "admin123"
+    ],
+    "message": "j",
+    "is_read": true,
+    "created_at": "2026-09-16T02:41:59.363Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 7,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "k",
+    "is_read": true,
+    "created_at": "2026-09-16T02:42:01.602Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 8,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "l",
+    "is_read": true,
+    "created_at": "2026-09-16T02:42:04.671Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 9,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "admin123"
+    ],
+    "message": "m",
+    "is_read": true,
+    "created_at": "2026-09-16T02:42:06.976Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 10,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "hh",
+    "is_read": true,
+    "created_at": "2026-09-16T02:47:12.760Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 11,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "admin123"
+    ],
+    "message": "h",
+    "is_read": true,
+    "created_at": "2026-09-16T02:47:16.397Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 12,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "admin123"
+    ],
+    "message": "mm",
+    "is_read": true,
+    "created_at": "2026-09-16T02:47:42.963Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 13,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "kkk",
+    "is_read": true,
+    "created_at": "2026-09-16T02:47:47.150Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 14,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "vanshsohal"
+    ],
+    "message": "okkk\\\\",
+    "is_read": true,
+    "created_at": "2026-09-16T02:51:31.775Z"
+  }
+},
+{
+  "model": "chat.message",
+  "pk": 15,
+  "fields": {
+    "conversation": 2,
+    "sender": [
+      "admin123"
+    ],
+    "message": "Hello! How can our support team assist you today?",
+    "is_read": true,
+    "created_at": "2026-09-16T02:51:42.884Z"
+  }
+}
+]
