@@ -232,7 +232,7 @@ STORAGES = {
         "BACKEND": "ai_store.storage.OptimizedMediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
