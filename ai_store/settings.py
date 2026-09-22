@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import dj_database_url
 
 load_dotenv()
 
@@ -25,31 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Set SECRET_KEY as an env var in production (e.g. Render). This hardcoded
-# value is only a fallback for local development.
-SECRET_KEY = os.getenv(
-    'SECRET_KEY',
-    'django-insecure-eeg*o2qw8h)6n&iw*ili!*a!i70m*_ba%81o8so4$(t!z@1bf#'
-)
+SECRET_KEY = 'django-insecure-eeg*o2qw8h)6n&iw*ili!*a!i70m*_ba%81o8so4$(t!z@1bf#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = True
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
-
-# Render sets this automatically to your service's onrender.com hostname.
-RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-# Trusted origins for CSRF (needed for POST/forms to work behind Render's proxy).
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
-if RENDER_EXTERNAL_HOSTNAME:
-    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
-
-# Render terminates TLS at its proxy and forwards this header; without it
-# Django thinks every request is plain HTTP and CSRF/secure-cookie checks misbehave.
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -87,7 +67,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -139,15 +118,8 @@ WSGI_APPLICATION = 'ai_store.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DB_ENGINE = os.getenv('DB_ENGINE', 'sqlite').lower()
-DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL:
-    # Render (and most managed Postgres providers) hand you a single connection
-    # string instead of separate host/user/password vars.
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
-    }
-elif DB_ENGINE in ('postgres', 'postgresql'):
+if DB_ENGINE in ('postgres', 'postgresql'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -158,7 +130,7 @@ elif DB_ENGINE in ('postgres', 'postgresql'):
             'PORT': os.getenv('DB_PORT', '5432'),
         }
     }
-else:
+else:  
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -232,7 +204,7 @@ STORAGES = {
         "BACKEND": "ai_store.storage.OptimizedMediaCloudinaryStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
@@ -277,10 +249,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            # Using the full URL (rather than a host/port tuple) means this also
-            # works with Render's Redis, which requires a password and usually TLS
-            # (rediss://...). Locally this is still just redis://127.0.0.1:6379.
-            "hosts": [REDIS_URL],
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
         },
     },
 }
@@ -293,3 +262,4 @@ RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "").strip()
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
 RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "").strip()
 RAZORPAY_CURRENCY = "INR"
+
