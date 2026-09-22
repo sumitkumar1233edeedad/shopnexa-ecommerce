@@ -1,0 +1,101 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Reviews | Store Admin{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Product Reviews</h1>
+        <p>Monitor and moderate customer ratings and product feedback.</p>
+    </div>
+    <div>
+        <span class="badge" style="font-size: 13px; padding: 6px 14px;">
+            {{ reviews|length }} Total Review{{ reviews|length|pluralize }}
+        </span>
+    </div>
+</section>
+
+<section class="content-card">
+    <form method="get" class="filter-bar" style="margin-bottom: 20px;">
+        <input type="search" name="search" value="{{ search|default:'' }}" placeholder="Search by product, customer, or review text...">
+        <button type="submit" class="btn btn-secondary">Search</button>
+        {% if search %}
+            <a href="{% url 'admin_reviews' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Rating</th>
+                    <th>Review Feedback</th>
+                    <th>Date</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                <tr>
+                    <td>
+                        {% if review.product %}
+                            <a href="{% url 'admin_product_detail' review.product.slug %}" style="font-weight: 600; color: var(--admin-black);">
+                                {{ review.product.name }}
+                            </a>
+                        {% else %}
+                            <span style="color: var(--admin-text-muted);">Product deleted</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'admin_customer_detail' review.user.profile.slug|default:review.user.username %}" style="color: var(--admin-info, #246bce); font-weight: 500;">
+                            {{ review.user.get_full_name|default:review.user.username }}
+                        </a>
+                    </td>
+                    <td>
+                        <span style="color: #f59e0b; font-weight: 700; white-space: nowrap;">
+                            ★ {{ review.rating }}/5
+                        </span>
+                    </td>
+                    <td style="max-width: 320px;">
+                        {% if review.product_review %}
+                            <span title="{{ review.product_review }}">
+                                {{ review.product_review|truncatechars:75 }}
+                            </span>
+                        {% else %}
+                            <em style="color: var(--admin-text-muted); font-size: 13px;">No written comment</em>
+                        {% endif %}
+                        {% if review.image %}
+                            <span title="Photo attached" style="margin-left: 4px;">📷</span>
+                        {% endif %}
+                    </td>
+                    <td style="white-space: nowrap; color: var(--admin-text-secondary); font-size: 13px;">
+                        {{ review.created_at|date:"M d, Y"|default:"—" }}
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <a href="{% url 'admin_review_detail' review.slug|default:review.id %}" class="btn btn-secondary btn-sm" style="margin-right: 6px;">
+                            View
+                        </a>
+                        {% if perms.products.delete_review or user.is_superuser %}
+                        <a href="{% url 'admin_review_delete' review.slug|default:review.id %}" class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <div style="padding: 32px 16px; text-align: center; color: var(--admin-text-muted);">
+                            <div style="font-size: 28px; margin-bottom: 8px;">⭐</div>
+                            <strong style="display: block; color: var(--admin-text); margin-bottom: 4px;">No reviews found</strong>
+                            <span>{% if search %}No reviews matched your search "{{ search }}".{% else %}No customer reviews have been submitted yet.{% endif %}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

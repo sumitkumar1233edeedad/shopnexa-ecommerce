@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if selected_category %}{{ selected_category.name }} | {% elif query %}Search: {{ query }} | {% endif %}Catalog | STORE AI
+{% endblock %}
+
+{% block content %}
+<div class="catalog-page">
+  <div class="container">
+
+    <!-- Page Header -->
+    <div class="catalog-header">
+      <h1 class="catalog-title">
+        {% if selected_category %}
+          {{ selected_category.name }}
+        {% elif query %}
+          Search Results for "{{ query }}"
+        {% else %}
+          All Products
+        {% endif %}
+      </h1>
+      <p class="catalog-subtitle">
+        Showing {{ total_count }} product{{ total_count|pluralize }} curated for you
+      </p>
+    </div>
+
+    <!-- Search & Sort Toolbar -->
+    <div class="catalog-toolbar">
+      
+      <!-- Search inside catalog -->
+      <div class="catalog-toolbar-left">
+        <form method="GET" action="{% url 'products' %}" class="catalog-search-form">
+          <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            name="q" 
+            value="{{ query|default:'' }}" 
+            placeholder="Search within products..." 
+            class="catalog-search-input"
+          >
+          {% if selected_category %}
+            <input type="hidden" name="category" value="{{ selected_category.slug }}">
+          {% endif %}
+          {% if sort %}
+            <input type="hidden" name="sort" value="{{ sort }}">
+          {% endif %}
+          {% if selected_price %}
+            <input type="hidden" name="price" value="{{ selected_price }}">
+          {% endif %}
+        </form>
+      </div>
+
+      <!-- Sort Dropdown -->
+      <div class="catalog-toolbar-right">
+        <form method="GET" action="{% url 'products' %}" id="sortForm">
+          {% if query %}
+            <input type="hidden" name="q" value="{{ query }}">
+          {% endif %}
+          {% if selected_category %}
+            <input type="hidden" name="category" value="{{ selected_category.slug }}">
+          {% endif %}
+          {% if selected_price %}
+            <input type="hidden" name="price" value="{{ selected_price }}">
+          {% endif %}
+          {% if min_price %}
+            <input type="hidden" name="min_price" value="{{ min_price }}">
+          {% endif %}
+          {% if max_price %}
+            <input type="hidden" name="max_price" value="{{ max_price }}">
+          {% endif %}
+
+          <label for="sortSelect" style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin-right: 6px;">Sort by:</label>
+          <select name="sort" id="sortSelect" class="sort-select" onchange="document.getElementById('sortForm').submit()">
+            <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest Arrivals</option>
+            <option value="price_low" {% if sort == "price_low" or sort == "low_to_high" or sort == "low_to_highest" %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_high" {% if sort == "price_high" or sort == "high_to_low" or sort == "highest_to_lowest" %}selected{% endif %}>Price: High to Low</option>
+            <option value="name" {% if sort == "name" or sort == "name_asc" %}selected{% endif %}>Alphabetical (A-Z)</option>
+          </select>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Main Catalog Layout: Sidebar + Grid -->
+    <div class="catalog-layout">
+      
+      <!-- Sticky Filter Sidebar -->
+      <aside class="filter-sidebar">
+        
+        <!-- Category Filter -->
+        <div>
+          <h2 class="filter-group-title">
+            <span>Categories</span>
+            {% if selected_category or query or selected_price or min_price or max_price %}
+              <a href="{% url 'products' %}" style="font-size: 11px; font-weight: 600; color: var(--accent);">Reset All</a>
+            {% endif %}
+          </h2>
+
+          <div class="filter-links-list">
+            <a 
+              href="{% url 'products' %}{% if query %}?q={{ query }}{% endif %}{% if sort %}{% if query %}&{% else %}?{% endif %}sort={{ sort }}{% endif %}" 
+              class="filter-link-item {% if not selected_category %}active{% endif %}"
+            >
+              <span>All Products</span>
+              <span>✦</span>
+            </a>
+
+            {% for cat in categories %}
+              <a 
+                href="?category={{ cat.slug }}{% if query %}&q={{ query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if selected_price %}&price={{ selected_price }}{% endif %}" 
+                class="filter-link-item {% if selected_category and selected_category.id == cat.id %}active{% endif %}"
+              >
+                <span>{{ cat.name }}</span>
+                <span style="font-size: 11px; opacity: 0.6;">→</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div style="padding-top: 16px; border-top: 1px solid var(--border-light);">
+          <h2 class="filter-group-title">
+            <span>Price Range</span>
+          </h2>
+
+          <form method="GET" action="{% url 'products' %}" id="catalogPriceFilterForm">
+            {% if selected_category %}
+              <input type="hidden" name="category" value="{{ selected_category.slug }}">
+            {% endif %}
+            {% if query %}
+              <input type="hidden" name="q" value="{{ query }}">
+            {% endif %}
+            {% if sort %}
+              <input type="hidden" name="sort" value="{{ sort }}">
+            {% endif %}
+
+            <div class="filter-price-options">
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="" {% if not selected_price and not min_price and not max_price %}checked{% endif %} onchange="document.getElementById('catalogPriceFilterForm').submit()">
+                <span>All Prices</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="0-1000" {% if selected_price == "0-1000" %}checked{% endif %} onchange="document.getElementById('catalogPriceFilterForm').submit()">
+                <span>Under ₹1,000</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="1000-5000" {% if selected_price == "1000-5000" %}checked{% endif %} onchange="document.getElementById('catalogPriceFilterForm').submit()">
+                <span>₹1,000 – ₹5,000</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="5000-20000" {% if selected_price == "5000-20000" %}checked{% endif %} onchange="document.getElementById('catalogPriceFilterForm').submit()">
+                <span>₹5,000 – ₹20,000</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="20000-50000" {% if selected_price == "20000-50000" %}checked{% endif %} onchange="document.getElementById('catalogPriceFilterForm').submit()">
+                <span>₹20,000 – ₹50,000</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="50000" {% if selected_price == "50000" %}checked{% endif %} onchange="document.getElementById('catalogPriceFilterForm').submit()">
+                <span>Over ₹50,000</span>
+              </label>
+            </div>
+
+            <!-- Custom Min / Max Price Inputs -->
+            <div class="custom-price-inputs">
+              <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="Min ₹" class="custom-price-input" min="0">
+              <span style="color: var(--text-muted); font-size: 12px;">–</span>
+              <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="Max ₹" class="custom-price-input" min="0">
+              <button type="submit" class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size: 11px;">Go</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Quick Promo in Sidebar -->
+        <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 14px; border: 1px dashed var(--border);">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Exclusive Savings</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
+            Apply promo code at checkout for verified discounts on your order.
+          </p>
+          <a href="{% url 'coupons:coupon_list' %}" style="font-size: 12px; font-weight: 700; color: var(--accent);">
+            Browse coupons →
+          </a>
+        </div>
+
+      </aside>
+
+      <!-- Main Products Grid Area -->
+      <main>
+        <div class="product-grid" id="product-grid">
+          {% if products %}
+            {% include "product/partials/product_card.html" %}
+          {% else %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <div class="empty-state-icon" style="display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </div>
+              <h2 class="empty-state-title">No products found</h2>
+              <p class="empty-state-desc">
+                {% if query %}
+                  We couldn't find any products matching "{{ query }}".
+                {% elif selected_category %}
+                  No products are currently available in {{ selected_category.name }}.
+                {% else %}
+                  Products are being stocked. Please check back soon!
+                {% endif %}
+              </p>
+              <a href="{% url 'products' %}" class="btn btn-primary btn-sm">
+                View All Products
+              </a>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Infinite Scroll Sentinel & Loading Indicator -->
+        <div class="infinite-scroll-container" id="infinite-scroll-container" {% if not products.has_next %}style="display: none;"{% endif %}>
+          <div id="scroll-loading-indicator" style="display: none;">
+            <span class="scroll-spinner"></span>
+            <span class="scroll-loading-text">Loading more curated products...</span>
+          </div>
+          <div id="scroll-sentinel" style="height: 30px; width: 100%;"></div>
+        </div>
+
+        <!-- End of Products Notice -->
+        <div id="scroll-end-indicator" style="display: none; text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; font-weight: 600;">
+          ✦ You've viewed all available products
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Infinite Scroll Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const productGrid = document.getElementById("product-grid");
+  const container = document.getElementById("infinite-scroll-container");
+  const loadingIndicator = document.getElementById("scroll-loading-indicator");
+  const endIndicator = document.getElementById("scroll-end-indicator");
+  const sentinel = document.getElementById("scroll-sentinel");
+
+  let isLoading = false;
+  let hasNext = {% if products.has_next %}true{% else %}false{% endif %};
+  let nextPage = {% if products.has_next %}{{ products.next_page_number }}{% else %}null{% endif %};
+
+  function loadNextChunk() {
+    if (isLoading || !hasNext || !nextPage) return;
+    isLoading = true;
+
+    if (loadingIndicator) loadingIndicator.style.display = "inline-flex";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set("page", nextPage);
+
+    const fetchUrl = `${window.location.pathname}?${urlParams.toString()}`;
+
+    fetch(fetchUrl, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Network error " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      if (data.html && productGrid) {
+        productGrid.insertAdjacentHTML("beforeend", data.html);
+      }
+
+      hasNext = data.has_next;
+      nextPage = data.next_page;
+
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+
+      if (!hasNext || !nextPage) {
+        if (container) container.style.display = "none";
+        if (endIndicator) endIndicator.style.display = "block";
+        if (observer && sentinel) observer.unobserve(sentinel);
+      }
+
+      isLoading = false;
+    })
+    .catch(err => {
+      console.error("Failed to load products on scroll:", err);
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      isLoading = false;
+    });
+  }
+
+  let observer = null;
+  if ("IntersectionObserver" in window && sentinel) {
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          loadNextChunk();
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: "300px",
+      threshold: 0.1
+    });
+
+    if (hasNext) {
+      observer.observe(sentinel);
+    }
+  } else {
+    window.addEventListener("scroll", function () {
+      if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 400)) {
+        loadNextChunk();
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

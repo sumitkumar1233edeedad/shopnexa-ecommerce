@@ -1,0 +1,6 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Add Category{% endblock %}
+{% block content %}
+<section class="page-header"><div><h1>Add Category</h1><p>Create a product category.</p></div></section>
+<section class="content-card"><form method="post" class="admin-form">{% csrf_token %}<div class="form-group"><label>Category Name</label><input name="name" required></div><div class="form-actions"><a href="{% url 'admin_categories' %}" class="btn btn-secondary">Cancel</a><button class="btn btn-primary">Create Category</button></div></form></section>
+{% endblock %}

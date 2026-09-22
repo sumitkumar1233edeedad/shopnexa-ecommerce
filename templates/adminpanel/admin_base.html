@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} | Store Admin</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script>
+        (function() {
+            try {
+                const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const currentCookie = document.cookie.split('; ').find(row => row.startsWith('user_timezone='));
+                const cookieVal = currentCookie ? decodeURIComponent(currentCookie.split('=')[1]) : null;
+                if (userTz && cookieVal !== userTz) {
+                    document.cookie = `user_timezone=${encodeURIComponent(userTz)};path=/;max-age=31536000;SameSite=Lax`;
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+<body>
+<div class="admin-layout">
+    {% include "adminpanel/admin_sidebar.html" %}
+    <div class="admin-main">
+        {% include "adminpanel/admin_navbar.html" %}
+        <main class="admin-content">
+            {% include "adminpanel/admin_messages.html" %}
+            {% block content %}{% endblock %}
+        </main>
+        {% include "adminpanel/admin_footer.html" %}
+    </div>
+</div>
+</body>
+</html>

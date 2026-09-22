@@ -1,0 +1,10 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Orders{% endblock %}
+{% block content %}
+<section class="page-header"><div><h1>Orders</h1><p>View and manage customer orders.</p></div></section>
+<section class="content-card"><form method="get" class="filter-bar"><select name="status"><option value="">All statuses</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button class="btn btn-secondary">Filter</button></form>
+<div class="table-wrapper"><table><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>
+{% for order in orders %}<tr><td>#{{ order.order_number|default:order.id }}</td><td>{{ order.user }}</td><td>{{ order.status|title }}</td><td>₹{{ order.total|floatformat:2 }}</td><td><a href="{% url 'admin_order_detail' order.slug %}">View</a></td></tr>
+{% empty %}<tr><td colspan="5" class="empty-state">No orders found.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

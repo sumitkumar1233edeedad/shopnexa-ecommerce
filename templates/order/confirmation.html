@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Order Confirmed #{{ order.order_number }} | STORE AI{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/modern_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="order-conf-page">
+  <div class="container" style="max-width: 780px;">
+
+    <!-- Brand Logo & Success Indicator -->
+    <div class="order-conf-header">
+      <div style="margin-bottom: 20px;">
+        <img src="{% static 'images/logo.png' %}" alt="STORE AI" style="height: 52px; width: auto; object-fit: contain;">
+      </div>
+
+      <div class="order-conf-success-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+
+      <h1 class="order-conf-title">
+        Thank You for Your Order!
+      </h1>
+
+      <p class="order-conf-subtitle">
+        Your order <strong>#{{ order.order_number }}</strong> has been placed and is currently being processed. A confirmation notification has been recorded to your account.
+      </p>
+    </div>
+
+    <!-- Order Summary Card -->
+    <div class="order-conf-card">
+      
+      <!-- Key Meta Row -->
+      <div class="order-conf-info">
+        <div class="order-conf-info-item">
+          <span class="order-conf-label">Order Number</span>
+          <h2 class="order-conf-number">#{{ order.order_number }}</h2>
+        </div>
+
+        <div class="order-conf-info-item">
+          <span class="order-conf-label">Order Date</span>
+          <strong class="order-conf-date">{{ order.created_at|date:"d M Y, h:i A" }}</strong>
+        </div>
+
+        <div class="order-conf-info-item">
+          <span class="order-conf-label">Status</span>
+          <span class="order-status-badge status-{{ order.status }}">
+            <span class="order-status-dot"></span>
+            <span>{{ order.get_status_display }}</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Ordered Items Preview -->
+      <div class="order-conf-section">
+        <div class="order-conf-section-header">
+          <h2 class="order-conf-section-title">Purchased Items</h2>
+          <span class="order-conf-item-count">{{ order.total_items }} item{{ order.total_items|pluralize }}</span>
+        </div>
+
+        <div class="order-conf-items">
+          {% for item in order.items.all %}
+            <div class="order-conf-item">
+              <div class="order-conf-product-image">
+                {% if item.variant.product.image %}
+                  <img src="{{ item.variant.product.image.url }}" alt="{{ item.variant.product.name }}" loading="lazy">
+                {% else %}
+                  <div class="order-conf-no-image">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="order-conf-product-info">
+                <h3 class="order-conf-product-name">{{ item.variant.product.name }}</h3>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                  {% if item.variant.color %}
+                    <span class="cart-item-chip" style="font-size: 11px;">Color: {{ item.variant.color.name }}</span>
+                  {% endif %}
+                  {% if item.variant.size %}
+                    <span class="cart-item-chip" style="font-size: 11px;">Size: {{ item.variant.size }}</span>
+                  {% endif %}
+                  <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Qty: {{ item.quantity }}</span>
+                </div>
+              </div>
+
+              <div class="order-conf-product-price">
+                <span class="order-conf-price">₹{{ item.price|floatformat:2 }}</span>
+                <small class="order-conf-subtotal">Subtotal: ₹{{ item.subtotal|floatformat:2 }}</small>
+              </div>
+            </div>
+          {% empty %}
+            <p style="color: var(--text-muted); font-size: 14px; padding: 16px 0;">No items found for this order.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Shipping & Payment Details Side by Side -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);">
+        <div>
+          <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Delivery Destination</h4>
+          <strong style="color: var(--text-primary); font-size: 14px; display: block; margin-bottom: 4px;">{{ order.shipping_name }}</strong>
+          {% if order.shipping_phone %}<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">{{ order.shipping_phone }}</div>{% endif %}
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin: 0;">{{ order.shipping_address }}, {{ order.shipping_city }} - {{ order.shipping_pincode }}</p>
+        </div>
+
+        <div>
+          <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">Payment Details</h4>
+          {% if payment %}
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Method: <strong>{{ payment.payment_method|upper }}</strong></div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Status: <span class="order-payment-badge {{ payment.status }}">{{ payment.status|title }}</span></div>
+            {% if payment.transaction_id %}
+              <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">Ref: {{ payment.transaction_id }}</div>
+            {% endif %}
+          {% else %}
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Method: <strong>Cash on Delivery (COD)</strong></div>
+            <span class="order-payment-badge pending">Pay Upon Arrival</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Financial Totals -->
+      <div class="order-conf-summary" style="padding-top: 20px;">
+        <div class="order-conf-summary-row">
+          <span>Items Subtotal</span>
+          <span>₹{{ order.items_subtotal|default:order.total_amount|floatformat:2 }}</span>
+        </div>
+
+        {% if order.discount_amount and order.discount_amount > 0 %}
+          <div class="order-conf-summary-row" style="color: var(--success); font-weight: 600;">
+            <span>Coupon Discount {% if order.coupon %}(<strong>{{ order.coupon.code }}</strong>){% endif %}</span>
+            <span>− ₹{{ order.discount_amount|floatformat:2 }}</span>
+          </div>
+        {% endif %}
+
+        <div class="order-conf-summary-row">
+          <span>Express Shipping</span>
+          <span style="color: var(--success); font-weight: 600;">FREE</span>
+        </div>
+
+        <div class="order-conf-summary-row order-conf-total-row">
+          <strong>Total Paid / Payable</strong>
+          <strong class="order-conf-total-amount" style="color: var(--accent);">₹{{ order.total_amount|floatformat:2 }}</strong>
+        </div>
+      </div>
+
+      <!-- Action Navigation Buttons -->
+      <div class="order-conf-actions" style="margin-top: 28px; display: flex; gap: 14px;">
+        <a href="{% url 'order_detail' order.slug %}" class="btn btn-primary btn-lg" style="flex: 1;">
+          <span>Track Order Details</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+
+        <a href="{% url 'products' %}" class="btn btn-outline btn-lg" style="flex: 1;">
+          <span>Continue Shopping</span>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

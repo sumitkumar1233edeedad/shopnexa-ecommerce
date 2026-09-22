@@ -1,0 +1,115 @@
+{% for product in products %}
+<article class="product-card" id="product-card-{{ product.id }}">
+
+  <!-- Product Media Container -->
+  <div class="product-media">
+    <a href="{% url 'product_detail' product.slug %}" aria-label="{{ product.name }}">
+      {% if product.image %}
+        <img 
+          src="{{ product.image.url }}" 
+          alt="{{ product.name }}" 
+          class="product-media-img"
+          loading="lazy"
+        >
+      {% else %}
+        <div class="product-no-img" style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-subtle); height: 100%;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span style="font-size: 11px; margin-top: 4px;">No image</span>
+        </div>
+      {% endif %}
+    </a>
+
+    <!-- Floating Badges -->
+    <div class="card-badges">
+      {% if product.default_variant and not product.default_variant.is_in_stock %}
+        <span class="badge-pill badge-out">Out of Stock</span>
+      {% else %}
+        <span class="badge-pill badge-new">New</span>
+      {% endif %}
+    </div>
+
+    <!-- Floating Wishlist Button -->
+    {% if user.is_authenticated %}
+      <form action="{% url 'toggle_wishlist' product.slug %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button 
+          type="submit" 
+          class="card-wishlist-btn {% if product.id in wishlist_product_ids %}active{% endif %}"
+          aria-label="{% if product.id in wishlist_product_ids %}Remove from wishlist{% else %}Add to wishlist{% endif %}"
+        >
+          {% if product.id in wishlist_product_ids %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            </svg>
+          {% else %}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            </svg>
+          {% endif %}
+        </button>
+      </form>
+    {% else %}
+      <a 
+        href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" 
+        class="card-wishlist-btn"
+        aria-label="Sign in to add to wishlist"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+        </svg>
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Product Card Body -->
+  <div class="product-card-body">
+    
+    <!-- Meta Category & Rating -->
+    <div class="product-card-meta">
+      {% with cat=product.cat.first %}
+        <span class="product-card-cat">{{ cat.name|default:"General" }}</span>
+      {% endwith %}
+
+      <div class="product-card-rating">
+        <span>★</span>
+        <span>{{ product.average_rating|default:"5.0" }}</span>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <h3 class="product-card-title">
+      <a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a>
+    </h3>
+
+    <!-- Price -->
+    <div class="product-card-price-row">
+      {% with variant=product.variants.first %}
+        {% if variant %}
+          <span class="product-price-current">₹{{ variant.price }}</span>
+        {% elif product.min_price and product.max_price %}
+          {% if product.min_price == product.max_price %}
+            <span class="product-price-current">₹{{ product.min_price }}</span>
+          {% else %}
+            <span class="product-price-current">₹{{ product.min_price }} - ₹{{ product.max_price }}</span>
+          {% endif %}
+        {% elif product.price %}
+          <span class="product-price-current">₹{{ product.price }}</span>
+        {% else %}
+          <span class="product-price-current" style="font-size: 14px; color: var(--text-muted);">Check Details</span>
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Actions -->
+    <div class="product-card-actions">
+      <a href="{% url 'product_detail' product.slug %}" class="btn-card-action">
+        <span>View Details</span>
+        <span>→</span>
+      </a>
+    </div>
+
+  </div>
+
+</article>
+{% endfor %}

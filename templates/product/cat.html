@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  {% if selected_category %}{{ selected_category.name }} | {% endif %}Categories | STORE AI
+{% endblock %}
+
+{% block content %}
+<div class="catalog-page">
+  <div class="container">
+
+    <!-- Page Header -->
+    <div class="catalog-header">
+      <h1 class="catalog-title">
+        {% if selected_category %}
+          {{ selected_category.name }}
+        {% else %}
+          Explore All Collections
+        {% endif %}
+      </h1>
+      <p class="catalog-subtitle">
+        {% if selected_category %}
+          Discover premium selections thoughtfully curated for {{ selected_category.name }}.
+        {% else %}
+          Browse our intelligently organized catalog of modern lifestyle and technology essentials.
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Toolbar: Search & Sort -->
+    <div class="catalog-toolbar">
+      
+      <div class="catalog-toolbar-left">
+        <form method="GET" action="{% url 'category_page' %}" class="catalog-search-form">
+          <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            name="q" 
+            value="{{ query|default:'' }}" 
+            placeholder="Search within category..." 
+            class="catalog-search-input"
+          >
+          {% if selected_category %}
+            <input type="hidden" name="category" value="{{ selected_category.id }}">
+          {% endif %}
+          {% if selected_price %}
+            <input type="hidden" name="price" value="{{ selected_price }}">
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="catalog-toolbar-right">
+        <form method="GET" action="{% url 'category_page' %}" id="catSortForm">
+          {% if query %}
+            <input type="hidden" name="q" value="{{ query }}">
+          {% endif %}
+          {% if selected_category %}
+            <input type="hidden" name="category" value="{{ selected_category.id }}">
+          {% endif %}
+          {% if selected_price %}
+            <input type="hidden" name="price" value="{{ selected_price }}">
+          {% endif %}
+          {% if min_price %}
+            <input type="hidden" name="min_price" value="{{ min_price }}">
+          {% endif %}
+          {% if max_price %}
+            <input type="hidden" name="max_price" value="{{ max_price }}">
+          {% endif %}
+
+          <label for="catSortSelect" style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin-right: 6px;">Sort by:</label>
+          <select name="sort" id="catSortSelect" class="sort-select" onchange="document.getElementById('catSortForm').submit()">
+            <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest Arrivals</option>
+            <option value="price_low" {% if sort == "price_low" or sort == "low_to_high" or sort == "low_to_highest" %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_high" {% if sort == "price_high" or sort == "high_to_low" or sort == "highest_to_lowest" %}selected{% endif %}>Price: High to Low</option>
+            <option value="name" {% if sort == "name" or sort == "name_asc" %}selected{% endif %}>Alphabetical (A-Z)</option>
+          </select>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Main Layout -->
+    <div class="catalog-layout">
+      
+      <!-- Sticky Sidebar Filters -->
+      <aside class="filter-sidebar">
+        
+        <!-- Category Filter -->
+        <div>
+          <h2 class="filter-group-title">
+            <span>Categories</span>
+            {% if selected_category or selected_price or min_price or max_price %}
+              <a href="{% url 'category_page' %}" style="font-size: 11px; font-weight: 600; color: var(--accent);">Reset</a>
+            {% endif %}
+          </h2>
+
+          <div class="filter-links-list">
+            <a href="{% url 'category_page' %}" class="filter-link-item {% if not selected_category %}active{% endif %}">
+              <span>All Products</span>
+              <span>✦</span>
+            </a>
+
+            {% for category in categories %}
+              <a 
+                href="?category={{ category.id }}{% if selected_price %}&price={{ selected_price }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                class="filter-link-item {% if selected_category and selected_category.id == category.id %}active{% endif %}"
+              >
+                <span>{{ category.name }}</span>
+                <span style="font-size: 11px; opacity: 0.6;">→</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div style="padding-top: 16px; border-top: 1px solid var(--border-light);">
+          <h2 class="filter-group-title">
+            <span>Price Range</span>
+          </h2>
+
+          <form method="GET" action="{% url 'category_page' %}" id="priceFilterForm">
+            {% if selected_category %}
+              <input type="hidden" name="category" value="{{ selected_category.id }}">
+            {% endif %}
+            {% if query %}
+              <input type="hidden" name="q" value="{{ query }}">
+            {% endif %}
+            {% if sort %}
+              <input type="hidden" name="sort" value="{{ sort }}">
+            {% endif %}
+
+            <div class="filter-price-options">
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="" {% if not selected_price and not min_price and not max_price %}checked{% endif %} onchange="document.getElementById('priceFilterForm').submit()">
+                <span>All Prices</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="0-500" {% if selected_price == "0-500" %}checked{% endif %} onchange="document.getElementById('priceFilterForm').submit()">
+                <span>Under ₹500</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="500-1000" {% if selected_price == "500-1000" %}checked{% endif %} onchange="document.getElementById('priceFilterForm').submit()">
+                <span>₹500 – ₹1,000</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="1000-5000" {% if selected_price == "1000-5000" %}checked{% endif %} onchange="document.getElementById('priceFilterForm').submit()">
+                <span>₹1,000 – ₹5,000</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="5000-10000" {% if selected_price == "5000-10000" %}checked{% endif %} onchange="document.getElementById('priceFilterForm').submit()">
+                <span>₹5,000 – ₹10,000</span>
+              </label>
+
+              <label class="filter-radio-label">
+                <input type="radio" name="price" value="10000" {% if selected_price == "10000" %}checked{% endif %} onchange="document.getElementById('priceFilterForm').submit()">
+                <span>₹10,000+</span>
+              </label>
+            </div>
+          </form>
+        </div>
+
+        <!-- Custom Price Inputs -->
+        <div style="padding-top: 16px; border-top: 1px solid var(--border-light);">
+          <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary);">Custom Price Range</h3>
+          <form method="GET" action="{% url 'category_page' %}">
+            {% if selected_category %}
+              <input type="hidden" name="category" value="{{ selected_category.id }}">
+            {% endif %}
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
+              <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="Min" class="form-control" style="height: 36px; padding: 0 8px; font-size: 13px;">
+              <span style="color: var(--text-muted);">-</span>
+              <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="Max" class="form-control" style="height: 36px; padding: 0 8px; font-size: 13px;">
+            </div>
+            <button type="submit" class="btn btn-outline btn-sm btn-block">Apply Filter</button>
+          </form>
+        </div>
+
+      </aside>
+
+      <!-- Main Product Area -->
+      <main>
+        <div class="product-grid" id="category-product-grid">
+          {% if products %}
+            {% include "product/includes/category_product_items.html" %}
+          {% else %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <div class="empty-state-icon">🛍️</div>
+              <h2 class="empty-state-title">No products found</h2>
+              <p class="empty-state-desc">
+                Try adjusting your category or price filters to see more results.
+              </p>
+              <a href="{% url 'category_page' %}" class="btn btn-primary btn-sm">
+                Clear Filters
+              </a>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Infinite Scroll Sentinel & Loading Indicator -->
+        <div class="infinite-scroll-container" id="cat-scroll-container" {% if not products.has_next %}style="display: none;"{% endif %}>
+          <div id="cat-loading-indicator" style="display: none;">
+            <span class="scroll-spinner"></span>
+            <span class="scroll-loading-text">Loading more products...</span>
+          </div>
+          <div id="cat-sentinel" style="height: 30px; width: 100%;"></div>
+        </div>
+
+        <!-- End of Products -->
+        <div id="cat-end-indicator" style="display: none; text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; font-weight: 600;">
+          ✦ You've reached the end of this collection
+        </div>
+      </main>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Category Page Infinite Scroll -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const grid = document.getElementById("category-product-grid");
+  const container = document.getElementById("cat-scroll-container");
+  const loadingIndicator = document.getElementById("cat-loading-indicator");
+  const endIndicator = document.getElementById("cat-end-indicator");
+  const sentinel = document.getElementById("cat-sentinel");
+
+  let isLoading = false;
+  let hasNext = {% if products.has_next %}true{% else %}false{% endif %};
+  let nextPage = {% if products.has_next %}{{ products.next_page_number }}{% else %}null{% endif %};
+
+  function loadNextChunk() {
+    if (isLoading || !hasNext || !nextPage) return;
+    isLoading = true;
+
+    if (loadingIndicator) loadingIndicator.style.display = "inline-flex";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set("page", nextPage);
+
+    const fetchUrl = `${window.location.pathname}?${urlParams.toString()}`;
+
+    fetch(fetchUrl, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP error " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      if (data.html && grid) {
+        grid.insertAdjacentHTML("beforeend", data.html);
+      }
+
+      hasNext = data.has_next;
+      nextPage = data.next_page;
+
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+
+      if (!hasNext || !nextPage) {
+        if (container) container.style.display = "none";
+        if (endIndicator) endIndicator.style.display = "block";
+        if (observer && sentinel) observer.unobserve(sentinel);
+      }
+
+      isLoading = false;
+    })
+    .catch(err => {
+      console.error("Error loading products on scroll:", err);
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      isLoading = false;
+    });
+  }
+
+  let observer = null;
+  if ("IntersectionObserver" in window && sentinel) {
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          loadNextChunk();
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: "300px",
+      threshold: 0.1
+    });
+
+    if (hasNext) {
+      observer.observe(sentinel);
+    }
+  }
+});
+</script>
+{% endblock %}

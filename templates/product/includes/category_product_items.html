@@ -1,0 +1,76 @@
+{% for product in products %}
+<article class="product-card" id="cat-item-{{ product.id }}">
+
+  <!-- Product Media -->
+  <div class="product-media">
+    <a href="{% url 'product_detail' product.slug %}" aria-label="{{ product.name }}">
+      {% if product.image %}
+        <img 
+          src="{{ product.image.url }}" 
+          alt="{{ product.name }}" 
+          class="product-media-img"
+          loading="lazy"
+        >
+      {% else %}
+        <div class="product-no-img" style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-subtle); height: 100%;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span style="font-size: 11px; margin-top: 4px;">No image</span>
+        </div>
+      {% endif %}
+    </a>
+
+    <div class="card-badges">
+      {% if product.default_variant and not product.default_variant.is_in_stock %}
+        <span class="badge-pill badge-out">Out of Stock</span>
+      {% else %}
+        <span class="badge-pill badge-new">Available</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Product Content -->
+  <div class="product-card-body">
+    
+    <div class="product-card-meta">
+      {% with cat=product.cat.first %}
+        <span class="product-card-cat">{{ cat.name|default:"General" }}</span>
+      {% endwith %}
+
+      <div class="product-card-rating">
+        <span>★</span>
+        <span>{{ product.average_rating|default:"5.0" }}</span>
+      </div>
+    </div>
+
+    <h3 class="product-card-title">
+      <a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a>
+    </h3>
+
+    <div class="product-card-price-row">
+      {% if product.discount_price %}
+        <span class="product-price-current">₹{{ product.discount_price }}</span>
+        <span class="product-price-old">₹{{ product.price }}</span>
+      {% elif product.price %}
+        <span class="product-price-current">₹{{ product.price }}</span>
+      {% else %}
+        {% with variant=product.variants.first %}
+          {% if variant %}
+            <span class="product-price-current">₹{{ variant.price }}</span>
+          {% else %}
+            <span class="product-price-current" style="font-size: 14px; color: var(--text-muted);">See Details</span>
+          {% endif %}
+        {% endwith %}
+      {% endif %}
+    </div>
+
+    <div class="product-card-actions">
+      <a href="{% url 'product_detail' product.slug %}" class="btn-card-action">
+        <span>View Details</span>
+        <span>→</span>
+      </a>
+    </div>
+
+  </div>
+
+</article>
+{% endfor %}

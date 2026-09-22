@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Payment | STORE AI{% endblock %}
+
+{% block content %}
+<div class="payment-process-page" style="min-height: 80vh; padding: 40px 0; background: var(--bg-body, #f8fafc);">
+  <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 16px;">
+
+    <!-- Top Breadcrumb / Title -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(99, 102, 241, 0.1); color: var(--accent, #6366f1); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>256-Bit Encrypted Payment</span>
+      </div>
+      <h1 style="font-size: 28px; font-weight: 800; color: var(--text-primary, #0f172a); margin: 0 0 8px;">Complete Your Payment</h1>
+      <p style="font-size: 14px; color: var(--text-muted, #64748b); margin: 0;">
+        Order <strong style="color: var(--text-primary, #0f172a);">#{{ order.order_number }}</strong> is reserved. Pay via UPI, Cards, or NetBanking to confirm.
+      </p>
+    </div>
+
+    <!-- Error Banner (if any) -->
+    <div id="paymentErrorBanner" style="display: {% if error %}block{% else %}none{% endif %}; background: #fef2f2; border: 1.5px solid #f87171; border-radius: 12px; padding: 16px; margin-bottom: 24px; color: #991b1b;">
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <strong style="display: block; font-size: 14px; margin-bottom: 2px;">Payment Encountered an Issue</strong>
+          <span id="paymentErrorMessage" style="font-size: 13px;">{{ error|default:"The transaction could not be completed. Please try again." }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Payment Card -->
+    <div style="background: var(--bg-card, #ffffff); border: 1.5px solid var(--border, #e2e8f0); border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden;">
+      
+      <!-- Amount Header Bar -->
+      <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 24px 30px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <span style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; display: block; margin-bottom: 4px;">Total Payable Amount</span>
+          <div style="font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">₹{{ order.total_amount }}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.15); padding: 8px 14px; border-radius: 10px; backdrop-filter: blur(8px);">
+          <span style="font-size: 12px; font-weight: 700;">Secured by</span>
+          <strong style="font-size: 15px; letter-spacing: 0.5px;">Razorpay</strong>
+        </div>
+      </div>
+
+      <div style="padding: 28px 30px;">
+        
+        <!-- Order Items Preview -->
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted, #64748b); margin-bottom: 14px;">Items in this Order ({{ order.items.count }})</h3>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for item in order.items.all %}
+              <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border-light, #f1f5f9);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  {% if item.variant.product.image %}
+                    <img src="{{ item.variant.product.image.url }}" alt="{{ item.variant.product.name }}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;">
+                  {% else %}
+                    <div style="width: 44px; height: 44px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                    </div>
+                  {% endif %}
+                  <div>
+                    <strong style="font-size: 14px; color: var(--text-primary, #0f172a); display: block;">{{ item.variant.product.name }}</strong>
+                    <span style="font-size: 12px; color: var(--text-muted, #64748b);">Qty: {{ item.quantity }}{% if item.variant.color %} • {{ item.variant.color.name }}{% endif %}</span>
+                  </div>
+                </div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--text-primary, #0f172a);">
+                  ₹{{ item.subtotal }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Delivery Destination Summary -->
+        <div style="background: var(--bg-subtle, #f8fafc); border: 1px solid var(--border-light, #e2e8f0); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted, #64748b); margin-bottom: 2px;">Shipping Address</div>
+            <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">{{ order.shipping_name }} ({{ order.shipping_phone }})</strong>
+            <div style="font-size: 12px; color: var(--text-secondary, #475569); margin-top: 2px;">{{ order.shipping_address }}, {{ order.shipping_city }} - {{ order.shipping_pincode }}</div>
+          </div>
+          <span style="background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">Standard Delivery</span>
+        </div>
+
+        <!-- Supported Payment Methods Visual -->
+        <div style="margin-bottom: 26px;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; text-align: center;">Accepted Online Payment Channels</div>
+          <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-subtle, #f1f5f9); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-primary, #1e293b);">
+              <span style="color: #4f46e5;">⚡</span> UPI (GPay, PhonePe, Paytm)
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-subtle, #f1f5f9); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-primary, #1e293b);">
+              <span>💳</span> Credit & Debit Cards
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-subtle, #f1f5f9); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-primary, #1e293b);">
+              <span>🏦</span> Net Banking (50+ Banks)
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-subtle, #f1f5f9); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--text-primary, #1e293b);">
+              <span>📱</span> Scan & Pay QR
+            </span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <button id="rzpPayButton" type="button" class="btn btn-primary btn-lg" style="width: 100%; height: 52px; font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; background: #4f46e5; border-color: #4f46e5; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35); border-radius: 12px; cursor: pointer; color: #fff;">
+            <span>Pay ₹{{ order.total_amount }} with Razorpay</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+
+          <a href="{% url 'cart' %}" class="btn btn-ghost" style="text-align: center; color: var(--text-muted, #64748b); font-size: 13px; font-weight: 600; padding: 8px;">
+            ← Return to Shopping Cart
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Fullscreen Processing Overlay -->
+<div id="paymentProcessingOverlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center; flex-direction: column; color: #ffffff;">
+  <div style="width: 56px; height: 56px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #6366f1; border-radius: 50%; animation: spinOverlay 0.8s linear infinite; margin-bottom: 20px;"></div>
+  <h3 style="font-size: 20px; font-weight: 800; margin: 0 0 8px;">Verifying Payment...</h3>
+  <p style="font-size: 14px; opacity: 0.85; margin: 0;">Please do not refresh or close this window.</p>
+</div>
+
+<style>
+@keyframes spinOverlay {
+  to { transform: rotate(360deg); }
+}
+</style>
+
+<!-- Razorpay Checkout Integration Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const payBtn = document.getElementById("rzpPayButton");
+  const errorBanner = document.getElementById("paymentErrorBanner");
+  const errorMessage = document.getElementById("paymentErrorMessage");
+  const overlay = document.getElementById("paymentProcessingOverlay");
+
+  function showError(msg) {
+    if (errorBanner && errorMessage) {
+      errorMessage.textContent = msg;
+      errorBanner.style.display = "block";
+    }
+  }
+
+  {% if razorpay_order_id and razorpay_key_id %}
+  const options = {
+    "key": "{{ razorpay_key_id }}",
+    "amount": "{{ amount_in_paise }}",
+    "currency": "{{ currency|default:'INR' }}",
+    "name": "AI Store",
+    "description": "Payment for Order #{{ order.order_number }}",
+    "order_id": "{{ razorpay_order_id }}",
+    "handler": function (response) {
+      // Step: Send cryptographic payment credentials to Django backend for signature verification
+      overlay.style.display = "flex";
+
+      fetch("{% url 'payment:verify' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+          order_slug: "{{ order.slug }}",
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature
+        })
+      })
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        if (data.status === "success" && data.redirect_url) {
+          window.location.href = data.redirect_url;
+        } else {
+          overlay.style.display = "none";
+          showError(data.message || "Payment verification failed. Please try again or contact support.");
+        }
+      })
+      .catch(function (err) {
+        overlay.style.display = "none";
+        showError("Network error while verifying payment. Please check your order status.");
+      });
+    },
+    "prefill": {
+      "name": "{{ user_name|escapejs }}",
+      "email": "{{ user_email|escapejs }}",
+      "contact": "{{ user_phone|escapejs }}"
+    },
+    "notes": {
+      "order_number": "{{ order.order_number|escapejs }}",
+      "order_slug": "{{ order.slug|escapejs }}"
+    },
+    "theme": {
+      "color": "#4f46e5"
+    },
+    "config": {
+      "display": {
+        "blocks": {
+          "upi": {
+            "name": "Pay using UPI / Google Pay / QR",
+            "instruments": [
+              { "method": "upi" }
+            ]
+          },
+          "other": {
+            "name": "Cards & Other Payment Methods",
+            "instruments": [
+              { "method": "card" },
+              { "method": "netbanking" },
+              { "method": "wallet" }
+            ]
+          }
+        },
+        "sequence": ["block.upi", "block.other"],
+        "preferences": {
+          "show_default_blocks": true
+        }
+      }
+    },
+    "modal": {
+      "ondismiss": function () {
+        console.log("Razorpay checkout modal closed by user.");
+      }
+    }
+  };
+
+  const rzpInstance = new Razorpay(options);
+
+  rzpInstance.on("payment.failed", function (response) {
+    overlay.style.display = "none";
+    showError(response.error.description || "Payment failed. Please try again with a different payment method.");
+  });
+
+  if (payBtn) {
+    payBtn.addEventListener("click", function () {
+      errorBanner.style.display = "none";
+      rzpInstance.open();
+    });
+  }
+
+  // Auto-launch the Razorpay popup seamlessly on page load (unless error occurred)
+  {% if not error %}
+  setTimeout(function () {
+    try {
+      rzpInstance.open();
+    } catch (e) {
+      console.warn("Auto-popup blocked by browser:", e);
+    }
+  }, 400);
+  {% endif %}
+
+  {% else %}
+  if (payBtn) {
+    payBtn.addEventListener("click", function () {
+      showError("Razorpay credentials or Order ID are missing. Please verify your .env configuration.");
+    });
+  }
+  {% endif %}
+});
+</script>
+{% endblock %}

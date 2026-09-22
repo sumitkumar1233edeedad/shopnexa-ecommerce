@@ -1,0 +1,8 @@
+<header class="admin-navbar">
+    <div>
+        <button type="button" class="sidebar-toggle" onclick="document.body.classList.toggle('sidebar-collapsed')">☰</button>
+    </div>
+    <div class="admin-user">
+        <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+    </div>
+</header>

@@ -1,0 +1,5 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Delete Category{% endblock %}
+{% block content %}
+<section class="content-card confirm-card"><h1>Delete Category?</h1><p>Delete <strong>{{ category.name }}</strong>?</p><form method="post">{% csrf_token %}<a href="{% url 'admin_categories' %}" class="btn btn-secondary">Cancel</a> <button class="btn btn-danger">Delete</button></form></section>
+{% endblock %}

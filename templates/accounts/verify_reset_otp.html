@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="account_login_page">
+
+    <div class="account_login_container" style="max-width: 440px;">
+
+        <div class="account_login_header">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
+            <h1 class="account_login_title">
+                Verify Reset Code
+            </h1>
+
+            <p class="account_login_subtitle">
+                Enter the 6-digit code sent to:
+                <br>
+                <strong style="color: #0284c7; word-break: break-all;">{{ email }}</strong>
+            </p>
+        </div>
+
+        {% if messages %}
+            <div class="account_messages">
+                {% for message in messages %}
+                    <p class="account_message">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'verify_reset_otp' %}" class="account_login_form">
+            {% csrf_token %}
+
+            <div class="account_form_group">
+                <label class="account_form_label" style="text-align: center; display: block;">
+                    6-Digit Reset Code
+                </label>
+
+                <input
+                    type="text"
+                    name="otp"
+                    maxlength="6"
+                    pattern="\d{6}"
+                    class="account_form_input"
+                    placeholder="• • • • • •"
+                    style="text-align: center; font-size: 26px; letter-spacing: 12px; font-weight: 700; font-family: monospace;"
+                    required
+                    autofocus
+                    autocomplete="one-time-code"
+                >
+            </div>
+
+            <!-- 10-MINUTE TIMER -->
+            <div style="text-align: center; margin: 15px 0 20px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <span style="font-size: 13px; color: #64748b;">Code expires in: </span>
+                <span id="countdown_timer" style="font-weight: 700; color: #ef4444; font-size: 15px;">10:00</span>
+            </div>
+
+            <button type="submit" class="account_login_button">
+                Verify Code
+            </button>
+        </form>
+
+        <div class="account_login_footer" style="margin-top: 20px; text-align: center;">
+            <p class="account_footer_text">
+                Didn't receive the email?
+                <br>
+                <a id="resend_link" href="{% url 'resend_reset_otp' %}" class="account_link" style="font-weight: 600;">
+                    Resend Code
+                </a>
+            </p>
+            <p style="margin-top: 15px; font-size: 13px;">
+                <a href="{% url 'forgot_password' %}" style="color: #64748b; text-decoration: none;">
+                    ← Use different email
+                </a>
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // 10 minutes timer (600 seconds)
+    (function() {
+        let timeLeft = 600;
+        const timerDisplay = document.getElementById("countdown_timer");
+
+        const interval = setInterval(function() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+
+            if (timerDisplay) {
+                timerDisplay.textContent = minutes + ":" + seconds;
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                if (timerDisplay) {
+                    timerDisplay.textContent = "EXPIRED";
+                    timerDisplay.style.color = "#94a3b8";
+                }
+            }
+            timeLeft--;
+        }, 1000);
+    })();
+</script>
+
+{% endblock %}

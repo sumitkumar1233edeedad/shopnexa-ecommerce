@@ -1,0 +1,73 @@
+<aside class="admin-sidebar">
+    <a href="{% url 'admin_dashboard' %}" class="admin-brand">Store Admin</a>
+    <nav>
+        <!-- Overview -->
+        <p class="nav-label">Overview</p>
+        <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+
+        <!-- Catalog -->
+        {% if perms.products.view_product or perms.products.add_product or perms.products.view_category or perms.products.view_color or perms.products.view_productvariant %}
+            <p class="nav-label">Catalog</p>
+            {% if perms.products.view_product %}
+                <a href="{% url 'admin_products' %}">Products</a>
+            {% endif %}
+            {% if perms.products.add_product %}
+                <a href="{% url 'admin_product_add' %}">Add Product</a>
+            {% endif %}
+            {% if perms.products.view_category %}
+                <a href="{% url 'admin_categories' %}">Categories</a>
+            {% endif %}
+            {% if perms.products.view_color %}
+                <a href="{% url 'admin_colors' %}">Colors</a>
+            {% endif %}
+            {% if perms.products.view_productvariant %}
+                <a href="{% url 'admin_variants' %}">Variants</a>
+            {% endif %}
+        {% endif %}
+
+        <!-- Sales -->
+        {% if perms.order.view_order or perms.accounts.view_customuser %}
+            <p class="nav-label">Sales</p>
+            {% if perms.order.view_order %}
+                <a href="{% url 'admin_orders' %}">Orders</a>
+            {% endif %}
+            {% if perms.accounts.view_customuser %}
+                <a href="{% url 'admin_customers' %}">Customers</a>
+            {% endif %}
+        {% endif %}
+
+        <!-- Marketing -->
+        {% if perms.coupons.view_coupon or perms.coupons.view_couponconfiguration or perms.coupons.change_couponconfiguration %}
+            <p class="nav-label">Marketing</p>
+            {% if perms.coupons.view_coupon %}
+                <a href="{% url 'admin_coupons' %}">🎟 Coupons</a>
+            {% endif %}
+            {% if perms.coupons.view_couponconfiguration or perms.coupons.change_couponconfiguration %}
+                <a href="{% url 'admin_coupon_configuration' %}">⚙ Coupon Settings</a>
+            {% endif %}
+        {% endif %}
+
+        <!-- Customer Content -->
+        {% if perms.products.view_review %}
+            <p class="nav-label">Customer Content</p>
+            <a href="{% url 'admin_reviews' %}">Reviews</a>
+        {% endif %}
+
+        <!-- Support -->
+        {% if perms.chat.view_conversation %}
+            <p class="nav-label">Support</p>
+            <a href="{% url 'admin_chat_list' %}">💬 Chat Support</a>
+        {% endif %}
+
+        <!-- Administration (Superuser Only) -->
+        {% if user.is_superuser %}
+            <p class="nav-label">Administration</p>
+            <a href="{% url 'admin_staff_list' %}">👥 Staff Permissions</a>
+        {% endif %}
+
+        <!-- Account -->
+        <p class="nav-label">Account</p>
+        <a href="{% url 'admin_logout' %}">Logout</a>
+    </nav>
+</aside>
+

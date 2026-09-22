@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Bag ({{ cart_count|default:items|length }}) | STORE AI{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/modern_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+  <div class="container">
+
+    <!-- Header & Cart Actions -->
+    <div class="cart-header-row">
+      <div>
+        <h1 class="cart-title">Shopping Bag</h1>
+        <p class="cart-subtitle">
+          {% if items %}
+            Review your selected {{ items|length }} item{{ items|length|pluralize }} and proceed to checkout
+          {% else %}
+            Your shopping bag is currently empty
+          {% endif %}
+        </p>
+      </div>
+
+      {% if items %}
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <a href="{% url 'products' %}" class="btn btn-outline btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Continue Shopping</span>
+          </a>
+          <form action="{% url 'clear_cart' %}" method="POST" onsubmit="return confirm('Are you sure you want to empty your shopping bag?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              <span>Empty Bag</span>
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if items %}
+      <!-- Free Shipping Threshold Banner -->
+      <div class="cart-shipping-progress-card">
+        <div class="shipping-progress-text">
+          {% if subtotal >= 500 %}
+            <span style="color: var(--success); display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <strong>You have qualified for FREE Express Delivery</strong>
+            </span>
+            <span class="badge-pill" style="background: var(--success-light); color: var(--success-text); border: 1px solid var(--success); font-size: 11px; font-weight: 700; letter-spacing: 0.04em;">
+              FREE DELIVERY UNLOCKED
+            </span>
+          {% else %}
+            <span style="display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+              <span>Add items worth <strong>₹500</strong> or more to receive <strong>FREE Express Shipping</strong></span>
+            </span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">
+              Threshold: ₹500
+            </span>
+          {% endif %}
+        </div>
+        <div class="shipping-progress-bar">
+          <div 
+            class="shipping-progress-fill {% if subtotal >= 500 %}completed{% endif %}" 
+            style="width: {% if subtotal >= 500 %}100%{% elif subtotal %}{% widthratio subtotal 500 100 %}%{% else %}0%{% endif %};"
+          ></div>
+        </div>
+      </div>
+
+      <div class="cart-layout">
+        
+        <!-- Left: Cart Items List -->
+        <div class="cart-items-card">
+          <div class="cart-items-header">
+            <span>Product Details</span>
+            <span>Subtotal</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column;">
+            {% for item in items %}
+              <div class="cart-item-row" id="cart-item-{{ item.id|default:forloop.counter }}">
+                
+                <!-- Product Image Thumbnail -->
+                {% if item.product.slug %}
+                  <a href="{% url 'product_detail' item.product.slug %}" class="cart-item-img-wrap">
+                {% elif item.variant.product.slug %}
+                  <a href="{% url 'product_detail' item.variant.product.slug %}" class="cart-item-img-wrap">
+                {% else %}
+                  <a href="{% url 'products' %}" class="cart-item-img-wrap">
+                {% endif %}
+                  {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-img" loading="lazy">
+                  {% elif item.variant.product.image %}
+                    <img src="{{ item.variant.product.image.url }}" alt="{{ item.variant.product.name }}" class="cart-item-img" loading="lazy">
+                  {% else %}
+                    <div class="cart-item-img-fallback">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                    </div>
+                  {% endif %}
+                </a>
+
+                <!-- Product Information & Variants -->
+                <div class="cart-item-info">
+                  <div class="cart-item-brand">
+                    {{ item.product.brand|default:item.variant.product.brand|default:"STORE AI" }}
+                  </div>
+
+                  <h2 class="cart-item-name">
+                    {% if item.product.slug %}
+                      <a href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a>
+                    {% elif item.variant.product.slug %}
+                      <a href="{% url 'product_detail' item.variant.product.slug %}">{{ item.variant.product.name }}</a>
+                    {% else %}
+                      <span>{{ item.product.name|default:item.variant.product.name|default:"Product" }}</span>
+                    {% endif %}
+                  </h2>
+
+                  <div class="cart-item-chips">
+                    {% if item.variant.color %}
+                      <span class="cart-item-chip">
+                        Color: <strong>{{ item.variant.color.name }}</strong>
+                      </span>
+                    {% endif %}
+                    {% if item.variant.size %}
+                      <span class="cart-item-chip">
+                        Size: <strong>{{ item.variant.size }}</strong>
+                      </span>
+                    {% endif %}
+                    {% if item.variant.sku %}
+                      <span class="cart-item-chip" style="color: var(--text-muted);">
+                        SKU: {{ item.variant.sku }}
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <div class="cart-item-pricing">
+                    <span class="cart-item-unit-price">₹{{ item.price }} / unit</span>
+                  </div>
+                </div>
+
+                <!-- Quantity Stepper Controls -->
+                <div>
+                  <div class="quantity-stepper">
+                    <form action="{% url 'decrease_quantity' item.variant.slug %}" method="POST" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="qty-btn" aria-label="Decrease quantity" title="Decrease quantity">−</button>
+                    </form>
+
+                    <span class="qty-input" aria-label="Current quantity">
+                      {{ item.quantity }}
+                    </span>
+
+                    <form action="{% url 'increase_quantity' item.variant.slug %}" method="POST" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="qty-btn" aria-label="Increase quantity" title="Increase quantity">+</button>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- Price & Remove Item -->
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                  <span class="cart-item-total-price">₹{{ item.total_price|default:item.price }}</span>
+                  <form action="{% url 'remove_from_cart' item.variant.slug %}" method="POST" class="cart-remove-form">
+                    {% csrf_token %}
+                    <button type="submit" class="cart-remove-btn" aria-label="Remove {{ item.product.name }} from cart" title="Remove item">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Right: Sticky Order Summary Card -->
+        <aside class="order-summary-card">
+          <h2 class="summary-title">Order Summary</h2>
+
+          <!-- Cart Coupon Application Section -->
+          <div style="padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border-light);">
+            {% if applied_coupon %}
+              <div style="background: var(--success-light); border: 1px solid var(--success); padding: 10px 12px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <strong style="color: var(--success-text); font-size: 13px;">{{ applied_coupon.code }}</strong>
+                    <span style="background: var(--success); color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px;">APPLIED</span>
+                  </div>
+                  <div style="font-size: 11px; color: var(--success-text); margin-top: 2px;">
+                    You saved ₹{{ discount_amount|floatformat:2 }}!
+                  </div>
+                </div>
+                <form method="POST" action="{% url 'coupons:remove_coupon' %}" style="margin: 0;">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="cart">
+                  <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger); font-size: 12px; padding: 2px 6px; font-weight: 700;">Remove</button>
+                </form>
+              </div>
+            {% elif user.is_authenticated %}
+              {% if best_coupon %}
+                <div style="background: linear-gradient(135deg, rgba(238, 242, 255, 0.95), rgba(224, 231, 255, 0.95)); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 10px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="font-size: 11px; font-weight: 800; color: var(--accent); text-transform: uppercase;">⚡ Auto Apply</span>
+                    <strong style="font-size: 12px; color: var(--success);">Save ₹{{ best_coupon.estimated_discount|floatformat:0 }}</strong>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">
+                    Best offer: <strong>{{ best_coupon.code }}</strong>
+                  </div>
+                  <form method="POST" action="{% url 'coupons:apply_coupon' %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="coupon_code" value="{{ best_coupon.code }}">
+                    <input type="hidden" name="next" value="cart">
+                    <button type="submit" class="btn btn-accent btn-sm btn-block" style="font-size: 11px; font-weight: 700; height: 30px;">
+                      Apply Best Coupon ({{ best_coupon.code }})
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+
+              <form method="POST" action="{% url 'coupons:apply_coupon' %}" style="display: flex; gap: 6px;">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="cart">
+                <input type="text" name="coupon_code" placeholder="Promo code" required class="form-control" style="height: 34px; font-size: 12px; text-transform: uppercase;">
+                <button type="submit" class="btn btn-primary btn-sm" style="font-size: 12px; padding: 0 12px; font-weight: 700;">Apply</button>
+              </form>
+            {% else %}
+              <div style="font-size: 12px; color: var(--text-muted);">
+                <a href="{% url 'login' %}?next={% url 'cart' %}" style="color: var(--accent); font-weight: 600;">Sign in</a> to apply discounts & coupons.
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="summary-row">
+            <span>Items Subtotal ({{ cart_count|default:items|length }})</span>
+            <strong>₹{{ subtotal|default:"0" }}</strong>
+          </div>
+
+          {% if discount_amount and discount_amount > 0 %}
+            <div class="summary-row" style="color: var(--success); font-weight: 600;">
+              <span>Coupon Discount</span>
+              <span>− ₹{{ discount_amount|floatformat:2 }}</span>
+            </div>
+          {% endif %}
+
+          <div class="summary-row">
+            <span>Estimated Delivery</span>
+            <span>
+              {% if shipping_fee == 0 %}
+                <strong style="color: var(--success);">FREE</strong>
+              {% else %}
+                <strong>₹{{ shipping_fee|default:"50" }}</strong>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="summary-row" style="font-size: 13px; color: var(--text-muted);">
+            <span>Taxes & GST</span>
+            <span>Included</span>
+          </div>
+
+          <div class="summary-row summary-total">
+            <span>Estimated Total</span>
+            <span style="color: var(--accent);">₹{{ total|default:"0" }}</span>
+          </div>
+
+          <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg btn-block" style="margin-top: 6px;">
+            <span>Proceed to Checkout</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+
+          <a href="{% url 'products' %}" class="btn btn-outline btn-block btn-sm">
+            <span>Browse More Products</span>
+          </a>
+
+          <!-- Trust & Security Badges with SVG -->
+          <div class="cart-trust-badges">
+            <div class="trust-badge-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent); flex-shrink: 0;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>256-Bit SSL Encrypted & Verified Checkout</span>
+            </div>
+            <div class="trust-badge-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent); flex-shrink: 0;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+              <span>Fast Track Express Dispatch within 24 Hours</span>
+            </div>
+            <div class="trust-badge-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent); flex-shrink: 0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span>7-Day Hassle-Free Exchange & Return Policy</span>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    {% else %}
+      
+      <!-- Refined Realistic Empty Cart State -->
+      <div class="empty-cart-card">
+        <div style="margin-bottom: 20px;">
+          <img src="{% static 'images/logo.png' %}" alt="STORE AI" style="height: 60px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.06));">
+        </div>
+        <h2 class="empty-cart-title">Your shopping bag is empty</h2>
+        <p class="empty-cart-desc">
+          You have no items in your shopping bag. Explore our curated selection of modern electronics, lifestyle apparel, and accessories.
+        </p>
+        <a href="{% url 'products' %}" class="btn btn-primary btn-lg" style="margin-bottom: 28px;">
+          <span>Start Shopping</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+
+        <div class="empty-cart-quick-categories">
+          <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); width: 100%; margin-bottom: 6px;">Popular Quick Links</span>
+          <a href="{% url 'products' %}" class="empty-cart-tag">All Products</a>
+          <a href="{% url 'category_page' %}" class="empty-cart-tag">Categories</a>
+          <a href="{% url 'coupons:coupon_list' %}" class="empty-cart-tag">Promotions & Deals</a>
+          <a href="{% url 'wishlist' %}" class="empty-cart-tag">Saved Wishlist</a>
+        </div>
+      </div>
+
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

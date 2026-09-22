@@ -1,0 +1,59 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Delete Color{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Delete Color</h1>
+        <p>Confirm color deletion.</p>
+    </div>
+</section>
+
+<section class="content-card">
+
+    <div class="delete-warning">
+
+        <h2>Are you sure?</h2>
+
+        <p>
+            You are about to delete the color:
+            <strong>{{ color.name }}</strong>
+        </p>
+
+        {% if color.hex_code %}
+            <p>
+                Hex Code:
+                <strong>{{ color.hex_code }}</strong>
+            </p>
+        {% endif %}
+
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-actions">
+
+            <a
+                href="{% url 'admin_colors' %}"
+                class="btn btn-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-danger"
+            >
+                Yes, Delete
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

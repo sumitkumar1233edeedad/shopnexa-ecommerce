@@ -1,0 +1,509 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Customer Support Chat | Admin{% endblock %}
+
+{% block content %}
+<style>
+    /* ============================================================
+       ADMIN CHAT SUPPORT — DASHBOARD STYLES
+       ============================================================ */
+    .admin-chat-header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .admin-chat-title h1 {
+        font-family: var(--font-display, 'Fraunces', serif);
+        font-size: 26px;
+        color: #111111;
+        margin: 0 0 4px 0;
+        letter-spacing: -0.4px;
+    }
+
+    .admin-chat-title p {
+        color: #626262;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* KPI Summary Cards */
+    .chat-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .kpi-card {
+        background: #ffffff;
+        border: 1px solid #e6e7e9;
+        border-radius: 14px;
+        padding: 18px 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .kpi-total .kpi-icon { background: #f1f2f4; color: #171717; }
+    .kpi-unread .kpi-icon { background: #fdeeed; color: #c0392b; }
+    .kpi-open .kpi-icon { background: #eaf7ef; color: #198754; }
+    .kpi-pending .kpi-icon { background: #fff7df; color: #a96f00; }
+
+    .kpi-meta h3 {
+        font-size: 26px;
+        font-weight: 700;
+        margin: 0 0 2px 0;
+        color: #171717;
+        line-height: 1.1;
+    }
+
+    .kpi-meta span {
+        font-size: 12px;
+        color: #8b8b8b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Filter & Search Toolbar */
+    .toolbar-card {
+        background: #ffffff;
+        border: 1px solid #e6e7e9;
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .status-tabs-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .status-pill-tab {
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 12.5px;
+        font-weight: 600;
+        text-decoration: none;
+        background: #f5f6f8;
+        color: #626262;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .status-pill-tab:hover {
+        background: #e6e7e9;
+        color: #171717;
+    }
+
+    .status-pill-tab.active {
+        background: #111111;
+        color: #ffffff;
+    }
+
+    .tab-counter {
+        background: rgba(0, 0, 0, 0.08);
+        padding: 1px 7px;
+        border-radius: 10px;
+        font-size: 11px;
+    }
+
+    .status-pill-tab.active .tab-counter {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f5f6f8;
+        border: 1px solid #e6e7e9;
+        border-radius: 10px;
+        padding: 6px 14px;
+        width: 320px;
+        max-width: 100%;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box:focus-within {
+        background: #ffffff;
+        border-color: #111111;
+        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+    }
+
+    .search-box input {
+        border: none;
+        background: transparent;
+        font-size: 13px;
+        outline: none;
+        width: 100%;
+        color: #171717;
+    }
+
+    /* Table & Card */
+    .tickets-table-card {
+        background: #ffffff;
+        border: 1px solid #e6e7e9;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .admin-chat-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+    }
+
+    .admin-chat-table th {
+        background: #fafafa;
+        color: #8b8b8b;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 14px 18px;
+        text-align: left;
+        border-bottom: 1px solid #e6e7e9;
+    }
+
+    .admin-chat-table td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #f1f2f4;
+        color: #171717;
+        vertical-align: middle;
+    }
+
+    .admin-chat-table tr:hover td {
+        background: #fafbfc;
+    }
+
+    .customer-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .user-avatar-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #111111 0%, #333333 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .user-details strong {
+        display: block;
+        font-size: 14px;
+        color: #111111;
+        font-weight: 600;
+    }
+
+    .user-details span {
+        font-size: 12px;
+        color: #8b8b8b;
+    }
+
+    .ticket-badge-slug {
+        font-family: monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: #111111;
+        background: #f1f2f4;
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .message-snippet-box {
+        color: #626262;
+        font-size: 13px;
+        max-width: 280px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .activity-time {
+        font-size: 12px;
+        color: #8b8b8b;
+        font-weight: 500;
+    }
+
+    /* Unread & Status badges */
+    .unread-pill-chip {
+        background: #fdeeed;
+        color: #c0392b;
+        border: 1px solid #f1c9c5;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .unread-pulse {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #c0392b;
+        display: inline-block;
+        box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.3);
+        animation: pulseRed 1.8s infinite;
+    }
+
+    @keyframes pulseRed {
+        0% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.5); }
+        70% { box-shadow: 0 0 0 5px rgba(192, 57, 43, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .status-chip::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-chip.status-open { background: #eaf7ef; color: #198754; }
+    .status-chip.status-open::before { background: #198754; }
+
+    .status-chip.status-pending { background: #fff7df; color: #a96f00; }
+    .status-chip.status-pending::before { background: #a96f00; }
+
+    .status-chip.status-resolved { background: #edf4ff; color: #246bce; }
+    .status-chip.status-resolved::before { background: #246bce; }
+
+    .status-chip.status-closed { background: #f1f2f4; color: #626262; }
+    .status-chip.status-closed::before { background: #8b8b8b; }
+
+    .btn-action-chat {
+        background: #111111;
+        color: #ffffff;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-action-chat:hover {
+        background: #292929;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+</style>
+
+<!-- Header -->
+<div class="admin-chat-header-bar">
+    <div class="admin-chat-title">
+        <h1>Customer Support Chat</h1>
+        <p>Real-time customer messaging & inquiry management console.</p>
+    </div>
+</div>
+
+<!-- KPI Metric Cards -->
+<div class="chat-kpi-grid">
+    <div class="kpi-card kpi-total">
+        <div class="kpi-icon">💬</div>
+        <div class="kpi-meta">
+            <h3>{{ counts.all }}</h3>
+            <span>Total Tickets</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-unread">
+        <div class="kpi-icon">🚨</div>
+        <div class="kpi-meta">
+            <h3>{{ counts.total_unread }}</h3>
+            <span>Unread Messages</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-open">
+        <div class="kpi-icon">🟢</div>
+        <div class="kpi-meta">
+            <h3>{{ counts.open }}</h3>
+            <span>Open & Active</span>
+        </div>
+    </div>
+    <div class="kpi-card kpi-pending">
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-meta">
+            <h3>{{ counts.pending }}</h3>
+            <span>Pending Action</span>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar: Filter Tabs & Search -->
+<div class="toolbar-card">
+    <div class="status-tabs-row">
+        <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" 
+           class="status-pill-tab {% if current_status == 'all' %}active{% endif %}">
+            All <span class="tab-counter">{{ counts.all }}</span>
+        </a>
+        <a href="?status=open{% if search_query %}&q={{ search_query }}{% endif %}" 
+           class="status-pill-tab {% if current_status == 'open' %}active{% endif %}">
+            Open <span class="tab-counter">{{ counts.open }}</span>
+        </a>
+        <a href="?status=pending{% if search_query %}&q={{ search_query }}{% endif %}" 
+           class="status-pill-tab {% if current_status == 'pending' %}active{% endif %}">
+            Pending <span class="tab-counter">{{ counts.pending }}</span>
+        </a>
+        <a href="?status=resolved{% if search_query %}&q={{ search_query }}{% endif %}" 
+           class="status-pill-tab {% if current_status == 'resolved' %}active{% endif %}">
+            Resolved <span class="tab-counter">{{ counts.resolved }}</span>
+        </a>
+        <a href="?status=closed{% if search_query %}&q={{ search_query }}{% endif %}" 
+           class="status-pill-tab {% if current_status == 'closed' %}active{% endif %}">
+            Closed <span class="tab-counter">{{ counts.closed }}</span>
+        </a>
+    </div>
+
+    <form method="GET" action="" style="margin: 0;">
+        <input type="hidden" name="status" value="{{ current_status }}">
+        <div class="search-box">
+            <span style="color: #8b8b8b;">🔍</span>
+            <input type="search" name="q" value="{{ search_query|default:'' }}" placeholder="Search by customer, email, username...">
+        </div>
+    </form>
+</div>
+
+<!-- Tickets Table -->
+<div class="tickets-table-card">
+    <div class="table-container">
+        <table class="admin-chat-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Ticket ID</th>
+                    <th>Last Message</th>
+                    <th>Activity</th>
+                    <th>Unread</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in conversations %}
+                <tr>
+                    <td>
+                        <div class="customer-cell">
+                            <div class="user-avatar-circle">
+                                {{ item.conv.user.username|slice:":1"|upper }}
+                            </div>
+                            <div class="user-details">
+                                <strong>{{ item.conv.user.get_full_name|default:item.conv.user.username }}</strong>
+                                <span>@{{ item.conv.user.username }} &bull; {{ item.conv.user.email|default:"No email" }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="ticket-badge-slug">{{ item.conv.slug }}</span>
+                    </td>
+                    <td>
+                        <div class="message-snippet-box">
+                            {% if item.last_message %}
+                                "{{ item.last_message.message }}"
+                            {% else %}
+                                <span style="color: #8b8b8b; font-style: italic;">No messages yet</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="activity-time">{{ item.conv.updated_at|date:"M d, h:i A" }}</span>
+                    </td>
+                    <td>
+                        {% if item.unread_count > 0 %}
+                            <span class="unread-pill-chip">
+                                <span class="unread-pulse"></span>
+                                {{ item.unread_count }} new
+                            </span>
+                        {% else %}
+                            <span style="color: #8b8b8b; font-size: 12px;">0 unread</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-chip status-{{ item.conv.status }}">
+                            {{ item.conv.get_status_display }}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'admin_chat_room' item.conv.slug %}" class="btn-action-chat">
+                            <span>Open Chat</span> &rarr;
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 60px 20px; color: #8b8b8b;">
+                        <div style="font-size: 36px; margin-bottom: 8px;">📭</div>
+                        <strong style="display: block; font-size: 15px; color: #171717;">No Support Tickets Found</strong>
+                        <span style="font-size: 13px;">No conversations match your current filter or search criteria.</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

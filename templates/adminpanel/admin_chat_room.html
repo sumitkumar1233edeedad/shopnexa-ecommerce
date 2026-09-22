@@ -1,0 +1,630 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Chat with {{ conversation.user.username }} | Admin Console{% endblock %}
+
+{% block content %}
+<style>
+    /* ============================================================
+       ADMIN CHAT ROOM CONSOLE STYLES
+       ============================================================ */
+    .chat-console-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: clamp(620px, calc(100vh - 160px), 860px);
+        background: #ffffff;
+        border: 1px solid #e6e7e9;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Top Customer Header Bar */
+    .console-header {
+        padding: 16px 24px;
+        background: #ffffff;
+        border-bottom: 1px solid #e6e7e9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        z-index: 5;
+    }
+
+    .customer-summary {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .customer-avatar-large {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #111111 0%, #333333 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 17px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .online-indicator-dot {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 2px solid #ffffff;
+    }
+
+    .online-indicator-dot.connected {
+        background: #198754;
+        box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.3);
+    }
+
+    .online-indicator-dot.connecting {
+        background: #f59e0b;
+    }
+
+    .online-indicator-dot.disconnected {
+        background: #c0392b;
+    }
+
+    .customer-info-box h2 {
+        font-family: var(--font-display, 'Fraunces', serif);
+        font-size: 18px;
+        color: #111111;
+        margin: 0 0 2px 0;
+        letter-spacing: -0.2px;
+    }
+
+    .customer-info-box p {
+        font-size: 12.5px;
+        color: #626262;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .tag-badge {
+        background: #f1f2f4;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: #111111;
+    }
+
+    /* Actions & Status Changer */
+    .console-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .status-changer-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 5px 12px;
+        border-radius: 10px;
+    }
+
+    .status-changer-card label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .status-select-input {
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12.5px;
+        font-weight: 600;
+        background: #ffffff;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-chip::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-chip.status-open { background: #eaf7ef; color: #198754; }
+    .status-chip.status-open::before { background: #198754; }
+
+    .status-chip.status-pending { background: #fff7df; color: #a96f00; }
+    .status-chip.status-pending::before { background: #a96f00; }
+
+    .status-chip.status-resolved { background: #edf4ff; color: #246bce; }
+    .status-chip.status-resolved::before { background: #246bce; }
+
+    .status-chip.status-closed { background: #f1f2f4; color: #626262; }
+    .status-chip.status-closed::before { background: #8b8b8b; }
+
+    /* Messages Thread */
+    .console-messages-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        background: #f9f9fb;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        scroll-behavior: smooth;
+    }
+
+    .console-messages-area::-webkit-scrollbar {
+        width: 6px;
+    }
+    .console-messages-area::-webkit-scrollbar-thumb {
+        background: #d2d4d8;
+        border-radius: 10px;
+    }
+
+    .chat-bubble-row {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+        animation: msgSlideIn 0.2s ease-out;
+    }
+
+    @keyframes msgSlideIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Admin Message (Right) */
+    .chat-bubble-row.admin-msg {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+
+    .chat-bubble-row.admin-msg .bubble-author {
+        font-size: 11px;
+        font-weight: 600;
+        color: #8b8b8b;
+        margin-bottom: 4px;
+        padding-right: 4px;
+    }
+
+    .chat-bubble-row.admin-msg .bubble-content {
+        background: #111111;
+        color: #ffffff;
+        border-radius: 16px 16px 4px 16px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Customer Message (Left) */
+    .chat-bubble-row.customer-msg {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+
+    .chat-bubble-row.customer-msg .bubble-author {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #246bce;
+        margin-bottom: 4px;
+        padding-left: 4px;
+    }
+
+    .chat-bubble-row.customer-msg .bubble-content {
+        background: #ffffff;
+        color: #171717;
+        border: 1px solid #e6e7e9;
+        border-radius: 16px 16px 16px 4px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .bubble-content {
+        padding: 13px 18px;
+        font-size: 14px;
+        line-height: 1.55;
+        word-break: break-word;
+    }
+
+    .bubble-time-stamp {
+        font-size: 10.5px;
+        color: #8b8b8b;
+        margin-top: 4px;
+        padding: 0 4px;
+    }
+
+    /* Quick Reply Toolbar */
+    .canned-chips-row {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 8px 24px;
+        background: #fafbfc;
+        border-top: 1px solid #edeef0;
+    }
+
+    .canned-chip {
+        background: #ffffff;
+        border: 1px solid #e0e2e5;
+        color: #333333;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 5px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+    }
+
+    .canned-chip:hover {
+        background: #111111;
+        color: #ffffff;
+        border-color: #111111;
+    }
+
+    /* Reply Composer */
+    .console-footer-composer {
+        padding: 14px 24px 16px;
+        background: #ffffff;
+        border-top: 1px solid #e6e7e9;
+    }
+
+    .console-form {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        background: #f8fafc;
+        border: 1.5px solid #dcdfe3;
+        border-radius: 12px;
+        padding: 6px 8px 6px 16px;
+        transition: all 0.2s ease;
+    }
+
+    .console-form:focus-within {
+        background: #ffffff;
+        border-color: #111111;
+        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.1);
+    }
+
+    .console-input-field {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        outline: none;
+        color: #171717;
+        padding: 8px 0;
+    }
+
+    .console-input-field::placeholder {
+        color: #8b8b8b;
+    }
+
+    .btn-send-reply {
+        background: #111111;
+        color: #ffffff;
+        border: none;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-send-reply:hover {
+        background: #292929;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .composer-hint {
+        font-size: 11px;
+        color: #8b8b8b;
+        margin-top: 6px;
+        padding-left: 6px;
+    }
+
+    .btn-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #626262;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 14px;
+        transition: color 0.15s;
+    }
+
+    .btn-back-link:hover {
+        color: #111111;
+    }
+</style>
+
+<!-- Navigation Back -->
+<a href="{% url 'admin_chat_list' %}" class="btn-back-link">
+    &larr; Back to Support Tickets
+</a>
+
+<div class="chat-console-wrapper">
+
+    <!-- Top Bar -->
+    <header class="console-header">
+        <div class="customer-summary">
+            <div class="customer-avatar-large">
+                {{ conversation.user.username|slice:":1"|upper }}
+                <span id="admin-online-indicator" class="online-indicator-dot connecting"></span>
+            </div>
+            <div class="customer-info-box">
+                <h2>{{ conversation.user.get_full_name|default:conversation.user.username }}</h2>
+                <p>
+                    <span class="tag-badge">{{ conversation.slug }}</span>
+                    <span>@{{ conversation.user.username }}</span>
+                    <span>&bull; {{ conversation.user.email|default:"No email" }}</span>
+                    {% if customer_profile and customer_profile.phone %}
+                        <span>&bull; 📞 {{ customer_profile.phone }}</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="console-actions">
+            <!-- Real-Time Status Changer -->
+            {% if can_change_status %}
+            <form method="POST" action="{% url 'admin_chat_status' conversation.slug %}" class="status-changer-card" id="status-form">
+                {% csrf_token %}
+                <label for="status-select">Status:</label>
+                <select name="status" id="status-select" class="status-select-input" onchange="changeStatus(this.value)">
+                    {% for val, label in status_choices %}
+                        <option value="{{ val }}" {% if conversation.status == val %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+
+            <span id="admin-status-chip" class="status-chip status-{{ conversation.status }}">
+                {{ conversation.get_status_display }}
+            </span>
+        </div>
+    </header>
+
+    <!-- Message Stream -->
+    <div class="console-messages-area" id="admin-messages">
+        <div style="text-align: center; margin: 6px 0;">
+            <span style="background: #f1f2f4; color: #8b8b8b; font-size: 11px; padding: 4px 12px; border-radius: 12px; font-weight: 600;">
+                Ticket opened on {{ conversation.created_at|date:"M d, Y" }}
+            </span>
+        </div>
+
+        {% for msg in chat_messages %}
+            <div class="chat-bubble-row {% if msg.sender.is_staff %}admin-msg{% else %}customer-msg{% endif %}">
+                <div class="bubble-author">
+                    {% if msg.sender.is_staff %}
+                        Admin ({{ msg.sender.first_name|default:msg.sender.username }})
+                    {% else %}
+                        {{ msg.sender.get_full_name|default:msg.sender.username }}
+                    {% endif %}
+                </div>
+                <div class="bubble-content">{{ msg.message }}</div>
+                <div class="bubble-time-stamp">{{ msg.created_at|date:"h:i A" }}</div>
+            </div>
+        {% empty %}
+            <div id="no-messages-notice" style="margin: auto; text-align: center; padding: 40px; color: #8b8b8b;">
+                <div style="font-size: 32px; margin-bottom: 6px;">✉️</div>
+                <strong style="display: block; color: #171717;">No messages in this ticket yet</strong>
+                <span style="font-size: 13px;">Send a reply below to initiate conversation with this customer.</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Canned Responses -->
+    {% if can_send_message %}
+    <div class="canned-chips-row">
+        <button type="button" class="canned-chip" onclick="insertCanned('Hello! How can our support team assist you today?')">👋 Greeting</button>
+        <button type="button" class="canned-chip" onclick="insertCanned('Your order has been packed and is ready for dispatch.')">📦 Order Dispatch</button>
+        <button type="button" class="canned-chip" onclick="insertCanned('You can enter your promotional coupon code on the cart or checkout page.')">🎟 Coupon Help</button>
+        <button type="button" class="canned-chip" onclick="insertCanned('I have marked this ticket as resolved. Please feel free to reach out if you have further questions!')">✅ Issue Resolved</button>
+    </div>
+
+    <!-- Composer Footer -->
+    <footer class="console-footer-composer">
+        <form class="console-form" id="admin-chat-form" onsubmit="event.preventDefault(); sendAdminMessage();">
+            <input type="text" 
+                   id="admin-input" 
+                   class="console-input-field" 
+                   placeholder="Type your response to {{ conversation.user.first_name|default:conversation.user.username }}..." 
+                   autocomplete="off" 
+                   maxlength="1500" 
+                   required>
+            <button type="submit" id="admin-btn-send" class="btn-send-reply">
+                <span>Send Reply</span> &rarr;
+            </button>
+        </form>
+        <div class="composer-hint">
+            💡 Press <strong>Enter ↵</strong> to send reply. Customer will receive it in real time.
+        </div>
+    </footer>
+    {% else %}
+    <footer class="console-footer-composer" style="text-align: center; color: #8b8b8b; font-size: 13px; padding: 18px; background: #fafbfc;">
+        🔒 You have read-only access to this conversation. Sending replies requires the <strong><code>chat.add_message</code></strong> permission.
+    </footer>
+    {% endif %}
+
+</div>
+
+<script>
+    const conversationSlug = "{{ conversation.slug }}";
+    const currentUserId = "{{ request.user.id }}";
+    const messagesContainer = document.getElementById("admin-messages");
+    const onlineIndicator = document.getElementById("admin-online-indicator");
+    const adminInput = document.getElementById("admin-input");
+    const statusSelect = document.getElementById("status-select");
+    const statusChip = document.getElementById("admin-status-chip");
+
+    const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const socketUrl = wsProtocol + window.location.host + "/ws/chat/" + conversationSlug + "/";
+    let socket = null;
+
+    function insertCanned(text) {
+        if (!adminInput) return;
+        adminInput.value = text;
+        adminInput.focus();
+    }
+
+    function initWebSocket() {
+        if (onlineIndicator) onlineIndicator.className = "online-indicator-dot connecting";
+
+        socket = new WebSocket(socketUrl);
+
+        socket.onopen = function(e) {
+            if (onlineIndicator) onlineIndicator.className = "online-indicator-dot connected";
+            socket.send(JSON.stringify({ action: "mark_read" }));
+        };
+
+        socket.onmessage = function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === "message") {
+                    appendMessage(data);
+                    scrollToBottom();
+                } else if (data.type === "status_change") {
+                    updateStatusDisplay(data.status, data.status_display);
+                } else if (data.type === "error") {
+                    alert(data.message || "Action not permitted.");
+                }
+            } catch (err) {
+                console.error("Error parsing admin WebSocket message:", err);
+            }
+        };
+
+        socket.onclose = function(e) {
+            if (onlineIndicator) onlineIndicator.className = "online-indicator-dot disconnected";
+            setTimeout(initWebSocket, 3000);
+        };
+
+        socket.onerror = function(err) {
+            console.error("Admin WebSocket error:", err);
+            socket.close();
+        };
+    }
+
+    function formatMessageTime(isoString) {
+        if (!isoString) return "Just now";
+        try {
+            const date = new Date(isoString);
+            if (isNaN(date.getTime())) return isoString;
+            return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+        } catch (e) {
+            return isoString;
+        }
+    }
+
+    function appendMessage(data) {
+        const placeholder = document.getElementById("no-messages-notice");
+        if (placeholder) placeholder.remove();
+
+        const isAdmin = data.is_staff;
+        const row = document.createElement("div");
+        row.className = "chat-bubble-row " + (isAdmin ? "admin-msg" : "customer-msg");
+
+        const authorDiv = document.createElement("div");
+        authorDiv.className = "bubble-author";
+        authorDiv.textContent = isAdmin 
+            ? "Admin (" + (data.sender_name || "Support") + ")" 
+            : data.sender_name;
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "bubble-content";
+        contentDiv.textContent = data.message;
+
+        const timeDiv = document.createElement("div");
+        timeDiv.className = "bubble-time-stamp";
+        timeDiv.textContent = formatMessageTime(data.created_at);
+
+        row.appendChild(authorDiv);
+        row.appendChild(contentDiv);
+        row.appendChild(timeDiv);
+
+        messagesContainer.appendChild(row);
+    }
+
+    function updateStatusDisplay(status, display) {
+        if (statusChip) {
+            statusChip.className = "status-chip status-" + status;
+            statusChip.textContent = display || status;
+        }
+        if (statusSelect && statusSelect.value !== status) {
+            statusSelect.value = status;
+        }
+    }
+
+    function changeStatus(newStatus) {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                action: "status_change",
+                status: newStatus
+            }));
+        } else {
+            const form = document.getElementById("status-form");
+            if (form) form.submit();
+        }
+    }
+
+    function sendAdminMessage() {
+        if (!adminInput) return;
+        const text = adminInput.value.trim();
+        if (!text) return;
+
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                action: "message",
+                message: text
+            }));
+            adminInput.value = "";
+            adminInput.focus();
+        } else {
+            alert("Connection interrupted. Reconnecting in a moment...");
+        }
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    window.addEventListener("DOMContentLoaded", function() {
+        scrollToBottom();
+        initWebSocket();
+        if (adminInput) adminInput.focus();
+    });
+</script>
+{% endblock %}

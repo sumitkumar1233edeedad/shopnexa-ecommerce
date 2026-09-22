@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}My Account{% endblock %}
+
+{% block content %}
+
+<div class="profile-page">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="profile-sidebar">
+
+        <!-- USER PROFILE -->
+        <div class="profile-user">
+
+            <div class="profile-avatar">
+
+                {% if user.profile.profile_picture %}
+                    <img
+                        src="{{ user.profile.profile_picture.url }}"
+                        alt="Profile Picture"
+                    >
+                {% else %}
+                    <span>
+                        {{ user.username|first|upper }}
+                    </span>
+                {% endif %}
+
+            </div>
+
+            <div class="profile-user-info">
+                <small>Hello,</small>
+                <strong>
+                    {{ user.first_name|default:user.username }}
+                </strong>
+            </div>
+
+        </div>
+
+
+        <!-- MY ORDERS -->
+        <a href="{% url 'my_orders' %}" class="profile-menu-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            <div>
+                <strong>MY ORDERS</strong>
+            </div>
+        </a>
+
+
+        <!-- ACCOUNT SETTINGS -->
+        <div class="profile-menu-section">
+
+            <div class="profile-menu-title">
+                ACCOUNT SETTINGS
+            </div>
+
+            <a href="{% url 'profile' profile.slug %}" class="profile-menu-item active">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <div>Profile Information</div>
+            </a>
+
+            <a href="{% url 'address' %}" class="profile-menu-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div>Manage Addresses</div>
+            </a>
+
+            <a href="{% url 'change_password' %}" class="profile-menu-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div>Password & Security</div>
+            </a>
+
+        </div>
+
+
+        <!-- ORDERS -->
+        <div class="profile-menu-section">
+
+            <div class="profile-menu-title">
+                MY STUFF
+            </div>
+
+            <a href="{% url 'wishlist' %}" class="profile-menu-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                <div>My Wishlist</div>
+            </a>
+
+            <a href="{% url 'cart' %}" class="profile-menu-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <div>My Cart</div>
+            </a>
+
+            <a href="{% url 'my_orders' %}" class="profile-menu-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <div>My Orders</div>
+            </a>
+
+        </div>
+
+
+        <!-- LOGOUT -->
+        <div class="profile-menu-section">
+
+            <a href="{% url 'logout' %}" class="profile-menu-item logout">
+                <span>🚪</span>
+                <div>Logout</div>
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- RIGHT SIDE -->
+    <main class="profile-content">
+
+
+        <!-- PROFILE INFORMATION -->
+        <section class="profile-card">
+
+            <div class="profile-card-header">
+
+                <h2>Personal Information</h2>
+
+                <a href="{% url 'update' profile.slug %}">
+                    Edit
+                </a>
+
+            </div>
+
+
+            <div class="profile-info">
+
+                <div class="profile-field">
+
+                    <label>First Name</label>
+
+                    <p>
+                        {{ user.first_name|default:"Not provided" }}
+                    </p>
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label>Last Name</label>
+
+                    <p>
+                        {{ user.last_name|default:"Not provided" }}
+                    </p>
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label>Username</label>
+
+                    <p>
+                        {{ user.username }}
+                    </p>
+
+                </div>
+
+
+                <div class="profile-field">
+
+                    <label>Email Address</label>
+
+                    <p>
+                        {{ user.email|default:"Not provided" }}
+                    </p>
+
+                </div>
+
+
+                {% if user.profile.phone %}
+
+                <div class="profile-field">
+
+                    <label>Mobile Number</label>
+
+                    <p>
+                        {{ user.profile.phone }}
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+        <!-- GENDER -->
+        <section class="profile-card">
+
+            <div class="profile-card-header">
+
+                <h2>Gender</h2>
+
+            </div>
+
+
+            <div class="gender-section">
+
+                <label>
+
+                    <input
+                        type="radio"
+                        name="gender"
+                        value="male"
+                        {% if user.profile.gender == "male" %}
+                            checked
+                        {% endif %}
+                        disabled
+                    >
+
+                    Male
+
+                </label>
+
+
+                <label>
+
+                    <input
+                        type="radio"
+                        name="gender"
+                        value="female"
+                        {% if user.profile.gender == "female" %}
+                            checked
+                        {% endif %}
+                        disabled
+                    >
+
+                    Female
+
+                </label>
+
+
+                <label>
+
+                    <input
+                        type="radio"
+                        name="gender"
+                        value="other"
+                        {% if user.profile.gender == "other" %}
+                            checked
+                        {% endif %}
+                        disabled
+                    >
+
+                    Other
+
+                </label>
+
+            </div>
+
+        </section>
+
+
+        <!-- EMAIL INFORMATION -->
+        <section class="profile-card">
+
+            <div class="profile-card-header">
+
+                <h2>Email & Communication</h2>
+
+            </div>
+
+
+            <div class="communication-section">
+
+                <label>
+
+                    <input
+                        type="checkbox"
+                        {% if user.profile.email_notifications %}
+                            checked
+                        {% endif %}
+                        disabled
+                    >
+
+                    Receive promotional emails
+
+                </label>
+
+
+                <label>
+
+                    <input
+                        type="checkbox"
+                        {% if user.profile.sms_notifications %}
+                            checked
+                        {% endif %}
+                        disabled
+                    >
+
+                    Receive SMS notifications
+
+                </label>
+
+            </div>
+
+        </section>
+
+
+        <!-- ACCOUNT OVERVIEW -->
+        <section class="profile-card">
+
+            <div class="profile-card-header">
+
+                <h2>Account Overview</h2>
+
+            </div>
+
+
+            <div class="account-overview">
+
+
+                <!-- ORDERS -->
+                <a href="{% url 'my_orders' %}">
+
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+
+                    <strong>
+                        {{ orders_count|default:"0" }}
+                    </strong>
+
+                    <small>
+                        Orders
+                    </small>
+
+                </a>
+
+
+                <!-- WISHLIST -->
+                <a href="{% url 'wishlist' %}">
+
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+
+                    <strong>
+                        {{ wishlist_count|default:"0" }}
+                    </strong>
+
+                    <small>
+                        Wishlist
+                    </small>
+
+                </a>
+
+
+                <!-- ADDRESSES -->
+                <a href="{% url 'address' %}">
+
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+
+                    <strong>
+                        {{ addresses_count|default:"0" }}
+                    </strong>
+
+                    <small>
+                        Addresses
+                    </small>
+
+                </a>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- ACCOUNT SECURITY -->
+        <section class="profile-card" id="account-security">
+
+            <div class="profile-card-header">
+
+                <h2>Account Security</h2>
+
+            </div>
+
+
+            <div class="security-section">
+
+                <div>
+
+                    <strong>Password</strong>
+
+                    <p>
+                        Keep your account secure by using a strong password.
+                    </p>
+
+                </div>
+
+                <a href="{% url 'change_password' %}">
+                    Change Password
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- LOGOUT -->
+        <section class="profile-card">
+
+            <div class="profile-card-header">
+
+                <h2>Account Actions</h2>
+
+            </div>
+
+            <a href="{% url 'logout' %}">
+                Logout from your account
+            </a>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+{% endblock %}
+

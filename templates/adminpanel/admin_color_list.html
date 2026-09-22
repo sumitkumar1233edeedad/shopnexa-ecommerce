@@ -1,0 +1,122 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Colors{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Colors</h1>
+        <p>Manage product colors.</p>
+    </div>
+
+    {% if perms.products.add_color or user.is_superuser %}
+    <a href="{% url 'admin_color_add' %}" class="btn btn-primary">
+        + Add Color
+    </a>
+    {% endif %}
+</section>
+
+<section class="content-card">
+
+    <form method="get" class="search-form">
+        <input
+            type="text"
+            name="search"
+            placeholder="Search color..."
+            value="{{ search }}"
+        >
+
+        <button type="submit" class="btn btn-secondary">
+            Search
+        </button>
+    </form>
+
+    <div class="table-responsive">
+        <table class="admin-table">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Color</th>
+                    <th>Hex Code</th>
+                    <th>Slug</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for color in colors %}
+
+                <tr>
+                    <td>{{ color.id }}</td>
+
+                    <td>
+                        <strong>{{ color.name }}</strong>
+                    </td>
+
+                    <td>
+                        {% if color.hex_code %}
+                            <span
+                                style="
+                                    display:inline-block;
+                                    width:20px;
+                                    height:20px;
+                                    border-radius:50%;
+                                    background:{{ color.hex_code }};
+                                    border:1px solid #ccc;
+                                    vertical-align:middle;
+                                    margin-right:6px;
+                                "
+                            ></span>
+
+                            {{ color.hex_code }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ color.slug }}
+                    </td>
+
+                    <td>
+                        {% if perms.products.change_color or user.is_superuser %}
+                        <a
+                            href="{% url 'admin_color_edit' color.slug %}"
+                            class="btn btn-small"
+                        >
+                            Edit
+                        </a>
+                        {% endif %}
+
+                        {% if perms.products.delete_color or user.is_superuser %}
+                        <a
+                            href="{% url 'admin_color_delete' color.slug %}"
+                            class="btn btn-small btn-danger"
+                        >
+                            Delete
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="5">
+                        No colors found.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+</section>
+
+{% endblock %}

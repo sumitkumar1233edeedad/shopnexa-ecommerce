@@ -1,0 +1,69 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Add Color{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Add Color</h1>
+        <p>Create a new product color.</p>
+    </div>
+</section>
+
+<section class="content-card">
+
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="name">Color Name</label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="e.g. Deep Blue"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="hex_code">Hex Code</label>
+
+                <input
+                    type="text"
+                    id="hex_code"
+                    name="hex_code"
+                    placeholder="#0000FF"
+                    maxlength="7"
+                >
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+
+            <a
+                href="{% url 'admin_colors' %}"
+                class="btn btn-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+            >
+                Create Color
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

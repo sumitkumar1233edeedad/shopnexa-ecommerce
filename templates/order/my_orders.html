@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Orders | STORE AI{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/modern_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="my-orders-page">
+  <div class="container">
+
+    <!-- Page Header -->
+    <div class="my-orders-header">
+      <div>
+        <h1 style="font-size: 30px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px;">
+          My Orders
+        </h1>
+        <p style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">
+          Track purchases, review invoice receipts, and check delivery status
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="{% url 'products' %}" class="btn btn-outline btn-sm">
+          <span>Explore Catalog</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      </div>
+    </div>
+
+    {% if orders %}
+      <!-- Filter Tabs with Clean Real-World Styling -->
+      <div class="orders-tabs" role="tablist">
+        <button type="button" class="orders-tab-btn active" data-filter="all" onclick="filterOrders('all', this)">
+          <span>All Orders</span>
+          <span class="orders-tab-count">{{ orders|length }}</span>
+        </button>
+
+        <button type="button" class="orders-tab-btn" data-filter="active" onclick="filterOrders('active', this)">
+          <span>In Progress</span>
+        </button>
+
+        <button type="button" class="orders-tab-btn" data-filter="delivered" onclick="filterOrders('delivered', this)">
+          <span>Delivered</span>
+        </button>
+
+        <button type="button" class="orders-tab-btn" data-filter="cancelled" onclick="filterOrders('cancelled', this)">
+          <span>Cancelled</span>
+        </button>
+      </div>
+
+      <!-- Orders List Container -->
+      <div class="orders-list" id="ordersList">
+        {% for order in orders %}
+          <div 
+            class="order-card" 
+            data-order-status="{{ order.status }}"
+            data-is-active="{% if order.status == 'pending_payment' or order.status == 'pending' or order.status == 'confirmed' or order.status == 'processing' or order.status == 'shipped' %}true{% else %}false{% endif %}"
+          >
+            
+            <!-- Order Card Header -->
+            <div class="order-card-header">
+              <div class="order-card-meta">
+                <div class="order-meta-item">
+                  <span class="order-meta-label">Order Reference</span>
+                  <span class="order-meta-value">#{{ order.order_number }}</span>
+                </div>
+
+                <div class="order-meta-item">
+                  <span class="order-meta-label">Order Placed</span>
+                  <span class="order-meta-value">{{ order.created_at|date:"d M Y, h:i A" }}</span>
+                </div>
+
+                <div class="order-meta-item">
+                  <span class="order-meta-label">Total Amount</span>
+                  <span class="order-meta-value price">₹{{ order.total_amount|default:order.total|floatformat:2 }}</span>
+                </div>
+              </div>
+
+              <!-- Status Badge -->
+              <span class="order-status-badge status-{{ order.status }}">
+                <span class="order-status-dot"></span>
+                <span>{{ order.get_status_display }}</span>
+              </span>
+            </div>
+
+            <!-- Order Card Body: Items Preview -->
+            <div class="order-card-body">
+              <div class="order-items-preview-list">
+                {% for item in order.items.all %}
+                  <div class="order-preview-row">
+                    <div class="order-preview-product">
+                      {% if item.variant.product.image %}
+                        <img src="{{ item.variant.product.image.url }}" alt="{{ item.variant.product.name }}" class="order-preview-thumb" loading="lazy">
+                      {% else %}
+                        <div class="order-preview-thumb" style="display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); color: var(--text-subtle);">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                        </div>
+                      {% endif %}
+
+                      <div class="order-preview-info">
+                        <h2 class="order-preview-title">
+                          <a href="{% url 'product_detail' item.variant.product.slug %}">
+                            {{ item.variant.product.name }}
+                          </a>
+                        </h2>
+
+                        <div class="order-preview-meta">
+                          {% if item.variant.color %}
+                            <span class="cart-item-chip" style="font-size: 11px;">Color: {{ item.variant.color.name }}</span>
+                          {% endif %}
+                          {% if item.variant.size %}
+                            <span class="cart-item-chip" style="font-size: 11px;">Size: {{ item.variant.size }}</span>
+                          {% endif %}
+                          <span style="color: var(--text-secondary); font-weight: 600; font-size: 12px;">
+                            Qty: {{ item.quantity }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="order-preview-price">
+                      ₹{{ item.subtotal|default:item.price|floatformat:2 }}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <!-- Order Card Footer -->
+              <div class="order-card-footer">
+                <div class="order-destination-preview">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); flex-shrink: 0;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>
+                    {% if order.shipping_city %}
+                      Delivering to <strong>{{ order.shipping_name|default:order.user.username|default:"Customer" }}</strong> in {{ order.shipping_city }}
+                    {% else %}
+                      Standard Delivery Destination
+                    {% endif %}
+                  </span>
+                </div>
+
+                <div class="order-card-actions">
+                  <a href="{% url 'chat:customer_chat' %}" class="btn btn-ghost btn-sm" title="Need help with this order?">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Concierge</span>
+                  </a>
+
+                  {% if order.status == 'pending_payment' %}
+                    <a href="{% url 'payment_process' order.slug %}" class="btn btn-accent btn-sm" style="font-weight: 700; background: #4f46e5; color: #fff;">
+                      <span>⚡ Pay Now</span>
+                    </a>
+                  {% endif %}
+
+                  <a href="{% url 'order_detail' order.slug %}" class="btn btn-primary btn-sm">
+                    <span>View Order Details</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Filter Empty Fallback (shown via JS when filter has no results) -->
+      <div id="filterEmptyState" class="empty-cart-card" style="display: none; padding: 40px 20px; margin-top: 20px;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--text-muted);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+        <h3 class="empty-cart-title" style="font-size: 18px;">No orders found in this category</h3>
+        <p class="empty-cart-desc" style="font-size: 13px;">
+          You do not have any orders matching the selected filter status.
+        </p>
+        <button type="button" class="btn btn-outline btn-sm" onclick="filterOrders('all', document.querySelector('[data-filter=\"all\"]'))">
+          View All Orders
+        </button>
+      </div>
+
+    {% else %}
+      
+      <!-- No Orders At All Empty State -->
+      <div class="empty-cart-card">
+        <div style="margin-bottom: 20px;">
+          <img src="{% static 'images/logo.png' %}" alt="STORE AI" style="height: 60px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.06));">
+        </div>
+        <h2 class="empty-cart-title">No orders placed yet</h2>
+        <p class="empty-cart-desc">
+          You haven't placed any purchases yet. Discover our curated catalog of smart electronics, lifestyle gear, and everyday essentials.
+        </p>
+        <a href="{% url 'products' %}" class="btn btn-primary btn-lg">
+          <span>Start Shopping</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      </div>
+
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Client-side Order Filtering Script -->
+<script>
+function filterOrders(category, tabBtn) {
+  document.querySelectorAll('.orders-tab-btn').forEach(btn => btn.classList.remove('active'));
+  if (tabBtn) tabBtn.classList.add('active');
+
+  const orderCards = document.querySelectorAll('.order-card');
+  let visibleCount = 0;
+
+  orderCards.forEach(card => {
+    const status = card.getAttribute('data-order-status');
+    const isActive = card.getAttribute('data-is-active') === 'true';
+
+    let show = false;
+    if (category === 'all') {
+      show = true;
+    } else if (category === 'active') {
+      show = isActive;
+    } else if (category === 'delivered') {
+      show = (status === 'delivered' || status === 'completed');
+    } else if (category === 'cancelled') {
+      show = (status === 'cancelled');
+    }
+
+    if (show) {
+      card.style.display = 'block';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const emptyNotice = document.getElementById('filterEmptyState');
+  if (emptyNotice) {
+    emptyNotice.style.display = visibleCount === 0 ? 'block' : 'none';
+  }
+}
+</script>
+{% endblock %}

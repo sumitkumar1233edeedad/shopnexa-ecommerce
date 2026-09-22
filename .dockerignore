@@ -1,0 +1,35 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+myvenv/
+venv/
+env/
+ENV/
+
+# Git
+.git/
+.gitignore
+
+# SQLite and local database
+*.sqlite3
+db.sqlite3
+
+# Static and media files
+staticfiles/
+media/
+
+# Environment files
+.env.local
+.env.*.local
+
+# IDE & Gemini
+.vscode/
+.idea/
+.gemini/
+chat_system.md
+README.md

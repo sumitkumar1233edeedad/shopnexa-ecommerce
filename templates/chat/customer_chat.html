@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Concierge Support #{{ active_conversation.slug }} | STORE AI{% endblock %}
+
+{% block extra_head %}
+{# Chat styles modularly loaded from static/css/chat.css via base.html #}
+{% endblock %}
+
+{% block content %}
+<div class="chat-page">
+
+    <!-- Page Breadcrumb & Header -->
+    <div class="chat-page-header">
+        <div>
+            <div class="chat-breadcrumb">
+                <a href="{% url 'home' %}">Store</a>
+                <span class="chat-breadcrumb-sep">/</span>
+                <span class="chat-breadcrumb-current">Concierge Support</span>
+            </div>
+            <div class="chat-page-headline">
+                <h1>Customer Support Concierge</h1>
+                <p>Private assistance with orders, custom sizing, promotions, and checkout.</p>
+            </div>
+        </div>
+
+        <button type="button" class="btn-mobile-tickets" onclick="toggleSidebar(true)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Tickets ({{ conversations|length }})</span>
+        </button>
+    </div>
+
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+
+    <div class="chat-container">
+
+        <!-- Sidebar: Conversation Tickets -->
+        <aside class="chat-sidebar" id="chat-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title-group">
+                    <h2>Support Tickets</h2>
+                    <span class="ticket-count-badge">{{ conversations|length }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <form method="POST" action="{% url 'chat:start_new_conversation' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-new-ticket">
+                            <span>+</span> New
+                        </button>
+                    </form>
+                    <button type="button" class="sidebar-close-mobile" onclick="toggleSidebar(false)">✕</button>
+                </div>
+            </div>
+
+            <div class="sidebar-conversations">
+                {% for item in conversations %}
+                    <a href="{% url 'chat:customer_chat_detail' item.conversation.slug %}" 
+                       class="ticket-card {% if item.conversation.id == active_conversation.id %}active{% endif %}">
+                        <div class="ticket-card-top">
+                            <span class="ticket-slug">#{{ item.conversation.slug }}</span>
+                            <span class="ticket-date">{{ item.conversation.updated_at|date:"M d" }}</span>
+                        </div>
+                        <div class="ticket-preview">
+                            {% if item.last_message %}
+                                {{ item.last_message.message }}
+                            {% else %}
+                                <em>New conversation started</em>
+                            {% endif %}
+                        </div>
+                        <div class="ticket-card-bottom">
+                            <span class="status-pill status-{{ item.conversation.status }}">
+                                {{ item.conversation.get_status_display }}
+                            </span>
+                            {% if item.unread_count > 0 %}
+                                <span class="unread-pill">{{ item.unread_count }} new</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% empty %}
+                    <div style="padding: 36px 20px; text-align: center; color: var(--theme-text-muted, #64748b); font-size: 13px;">
+                        No previous tickets found.
+                    </div>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <!-- Main Real-Time Chat Console -->
+        <main class="chat-window">
+
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="concierge-profile">
+                    <div class="concierge-avatar-badge">
+                        <img src="{% static 'images/logo.png' %}" alt="STORE AI">
+                        <span id="connection-badge" class="avatar-status-badge connecting"></span>
+                    </div>
+                    <div class="concierge-info">
+                        <h2>STORE AI Concierge <svg class="verified-badge" width="15" height="15" viewBox="0 0 24 24" fill="#0066ff"><path d="M12 2l3.09 3.1 4.38-.44 1.7 4.05 3.93 2-1.7 4.05.44 4.38-4.05 1.7-2 3.93-4.05-1.7-4.38.44-1.7-4.05-3.93-2 1.7-4.05-.44-4.38 4.05-1.7L12 2z"/><path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+                        <div class="concierge-status-line">
+                            <span id="connection-pulse" class="pulse-dot connecting"></span>
+                            <span id="connection-status-text">Connecting in real time...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-header-actions">
+                    <span class="ticket-chip" title="Reference Slug">
+                        <span>#</span>{{ active_conversation.slug }}
+                    </span>
+                    <span id="ticket-status-pill" class="status-pill status-{{ active_conversation.status }}">
+                        {{ active_conversation.get_status_display }}
+                    </span>
+                </div>
+            </header>
+
+            <!-- Messages Area with Visible Custom Scrollbar -->
+            <div class="chat-messages" id="chat-messages">
+                <div class="date-separator">
+                    <span>Ticket #{{ active_conversation.slug }} &bull; {{ active_conversation.created_at|date:"M d, Y" }}</span>
+                </div>
+
+                {% if chat_messages %}
+                    {% for msg in chat_messages %}
+                        {% if msg.sender_id == request.user.id %}
+                            <!-- Customer Message (Right) -->
+                            <div class="message-row me">
+                                <div class="message-content-wrap">
+                                    <div class="message-bubble">{{ msg.message }}</div>
+                                    <div class="message-meta">
+                                        <span>{{ msg.created_at|date:"h:i A" }}</span>
+                                        <span class="message-status-ticks">
+                                            {% if msg.is_read %}
+                                                <svg class="tick-svg is-read" width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="#0066ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>
+                                            {% else %}
+                                                <svg class="tick-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Support Concierge Message (Left with Avatar) -->
+                            <div class="message-row other">
+                                <div class="message-avatar">
+                                    <img src="{% static 'images/logo.png' %}" alt="Support Concierge">
+                                </div>
+                                <div class="message-content-wrap">
+                                    <div class="message-sender">
+                                        <span>Store Concierge{% if msg.sender.first_name %} ({{ msg.sender.first_name }}){% endif %}</span>
+                                        <svg class="verified-badge-inline" width="12" height="12" viewBox="0 0 24 24" fill="#0066ff"><path d="M12 2l3.09 3.1 4.38-.44 1.7 4.05 3.93 2-1.7 4.05.44 4.38-4.05 1.7-2 3.93-4.05-1.7-4.38.44-1.7-4.05-3.93-2 1.7-4.05-.44-4.38 4.05-1.7L12 2z"/><path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </div>
+                                    <div class="message-bubble">{{ msg.message }}</div>
+                                    <div class="message-meta">
+                                        <span>{{ msg.created_at|date:"h:i A" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="chat-empty-state" id="empty-state">
+                        <div class="empty-icon-circle">
+                            <img src="{% static 'images/logo.png' %}" alt="STORE AI">
+                        </div>
+                        <h3>Welcome to STORE AI Concierge</h3>
+                        <p>Our dedicated team is ready to assist you in real time with orders, sizing, promotions, and checkout.</p>
+                        
+                        <div class="quick-chips-title">Suggested Inquiries</div>
+                        <div class="quick-chips">
+                            <button type="button" class="quick-chip-btn" onclick="setQuickMessage('Can you help me check my order status?')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                                <span>Track Order Status</span>
+                            </button>
+                            <button type="button" class="quick-chip-btn" onclick="setQuickMessage('What active discount coupons are available?')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12l-5-2.5L9 21l-5-2.5V7z"/></svg>
+                                <span>Available Coupons</span>
+                            </button>
+                            <button type="button" class="quick-chip-btn" onclick="setQuickMessage('I have a question regarding size or fit.')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+                                <span>Size & Fit Advice</span>
+                            </button>
+                            <button type="button" class="quick-chip-btn" onclick="setQuickMessage('Can you assist me with payment methods?')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                                <span>Payment Assistance</span>
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Composer Footer -->
+            <footer class="chat-composer-area">
+                <form class="chat-composer-form" id="chat-form" onsubmit="event.preventDefault(); sendMessage();">
+                    <input type="text" 
+                           id="chat-input" 
+                           class="chat-input-field" 
+                           placeholder="Type your message or inquiry..." 
+                           autocomplete="off" 
+                           maxlength="1500" 
+                           required>
+                    <button type="submit" id="btn-send" class="btn-send-message" aria-label="Send message">
+                        <span>Send</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </form>
+                <div class="composer-meta-note">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: #10b981;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Real-time secure concierge session &bull; Press <strong>Enter ↵</strong> to send
+                </div>
+            </footer>
+
+        </main>
+
+    </div>
+</div>
+
+<script>
+    const conversationSlug = "{{ active_conversation.slug }}";
+    const currentUserId = {{ request.user.id }};
+    const messagesContainer = document.getElementById("chat-messages");
+    const connectionBadge = document.getElementById("connection-badge");
+    const connectionPulse = document.getElementById("connection-pulse");
+    const connectionText = document.getElementById("connection-status-text");
+    const chatInput = document.getElementById("chat-input");
+    const btnSend = document.getElementById("btn-send");
+    const statusPill = document.getElementById("ticket-status-pill");
+    const sidebarElement = document.getElementById("chat-sidebar");
+    const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+
+    const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const socketUrl = wsProtocol + window.location.host + "/ws/chat/" + conversationSlug + "/";
+    let socket = null;
+
+    function toggleSidebar(open) {
+        if (sidebarElement) {
+            if (open) {
+                sidebarElement.classList.add("open");
+                if (sidebarBackdrop) sidebarBackdrop.classList.add("active");
+            } else {
+                sidebarElement.classList.remove("open");
+                if (sidebarBackdrop) sidebarBackdrop.classList.remove("active");
+            }
+        }
+    }
+
+    function initWebSocket() {
+        setConnectionState("connecting", "Connecting to live concierge...");
+
+        socket = new WebSocket(socketUrl);
+
+        socket.onopen = function(e) {
+            setConnectionState("connected", "Active & Connected in Real Time");
+            btnSend.disabled = false;
+            socket.send(JSON.stringify({ action: "mark_read" }));
+        };
+
+        socket.onmessage = function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === "message") {
+                    appendMessage(data);
+                    scrollToBottom();
+                } else if (data.type === "status_change") {
+                    updateStatusUI(data.status, data.status_display);
+                } else if (data.type === "read_receipt") {
+                    // Turn user's ticks blue when viewed by support
+                    if (data.user_id !== currentUserId) {
+                        document.querySelectorAll(".message-row.me .message-status-ticks").forEach(tickEl => {
+                            tickEl.innerHTML = `<svg class="tick-svg is-read" width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="#0066ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>`;
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error reading WebSocket payload:", err);
+            }
+        };
+
+        socket.onclose = function(e) {
+            setConnectionState("disconnected", "Offline (reconnecting...)");
+            btnSend.disabled = true;
+            setTimeout(initWebSocket, 3000);
+        };
+
+        socket.onerror = function(err) {
+            console.error("WebSocket encountered error:", err);
+            socket.close();
+        };
+    }
+
+    function setConnectionState(state, text) {
+        if (connectionBadge) connectionBadge.className = "avatar-status-badge " + state;
+        if (connectionPulse) connectionPulse.className = "pulse-dot " + state;
+        if (connectionText) connectionText.textContent = text;
+    }
+
+    function formatMessageTime(isoString) {
+        if (!isoString) return "Just now";
+        try {
+            const date = new Date(isoString);
+            if (isNaN(date.getTime())) return isoString;
+            return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+        } catch (e) {
+            return isoString;
+        }
+    }
+
+    function appendMessage(data) {
+        const emptyState = document.getElementById("empty-state");
+        if (emptyState) emptyState.remove();
+
+        const isMe = data.sender_id === currentUserId;
+        const row = document.createElement("div");
+        row.className = "message-row " + (isMe ? "me" : "other");
+
+        const wrap = document.createElement("div");
+        wrap.className = "message-content-wrap";
+
+        const timeFormatted = formatMessageTime(data.created_at);
+
+        if (isMe) {
+            const bubble = document.createElement("div");
+            bubble.className = "message-bubble";
+            bubble.textContent = data.message;
+
+            const meta = document.createElement("div");
+            meta.className = "message-meta";
+            meta.innerHTML = `<span>${timeFormatted}</span>` +
+                `<span class="message-status-ticks"><svg class="tick-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>`;
+
+            wrap.appendChild(bubble);
+            wrap.appendChild(meta);
+            row.appendChild(wrap);
+        } else {
+            const avatar = document.createElement("div");
+            avatar.className = "message-avatar";
+            avatar.innerHTML = `<img src="{% static 'images/logo.png' %}" alt="Support Concierge">`;
+
+            const sender = document.createElement("div");
+            sender.className = "message-sender";
+            const senderLabel = data.is_staff ? "Store Concierge" : (data.sender_name || "Support");
+            sender.innerHTML = `<span>${senderLabel}</span> <svg class="verified-badge-inline" width="12" height="12" viewBox="0 0 24 24" fill="#0066ff"><path d="M12 2l3.09 3.1 4.38-.44 1.7 4.05 3.93 2-1.7 4.05.44 4.38-4.05 1.7-2 3.93-4.05-1.7-4.38.44-1.7-4.05-3.93-2 1.7-4.05-.44-4.38 4.05-1.7L12 2z"/><path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+            const bubble = document.createElement("div");
+            bubble.className = "message-bubble";
+            bubble.textContent = data.message;
+
+            const meta = document.createElement("div");
+            meta.className = "message-meta";
+            meta.innerHTML = `<span>${timeFormatted}</span>`;
+
+            wrap.appendChild(sender);
+            wrap.appendChild(bubble);
+            wrap.appendChild(meta);
+            row.appendChild(avatar);
+            row.appendChild(wrap);
+        }
+
+        messagesContainer.appendChild(row);
+    }
+
+    function updateStatusUI(status, statusDisplay) {
+        if (statusPill) {
+            statusPill.className = "status-pill status-" + status;
+            statusPill.textContent = statusDisplay || status;
+        }
+    }
+
+    function setQuickMessage(text) {
+        chatInput.value = text;
+        chatInput.focus();
+    }
+
+    function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                action: "message",
+                message: text
+            }));
+            chatInput.value = "";
+            chatInput.focus();
+        } else {
+            alert("Connection interrupted. Reconnecting in a moment...");
+        }
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    window.addEventListener("DOMContentLoaded", function() {
+        scrollToBottom();
+        initWebSocket();
+        chatInput.focus();
+    });
+</script>
+{% endblock %}

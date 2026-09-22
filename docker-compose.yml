@@ -1,0 +1,103 @@
+services:
+  # ==============================================================================
+  # PostgreSQL Database Service
+  # ==============================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: ai_store_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-ai_store_db}
+      POSTGRES_USER: ${DB_USER:-ai_store_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ai_store_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent PostgreSQL data storage:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ai_store_user} -d ${DB_NAME:-ai_store_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================================================
+  # Redis Cache & Message Broker (for Celery & Django Channels)
+  # ==============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: ai_store_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ==============================================================================
+  # Django Web Application (Daphne ASGI Server)
+  # ==============================================================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_store_web
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DB_ENGINE=postgresql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ==============================================================================
+  # Celery Background Worker
+  # ==============================================================================
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_store_celery
+    restart: unless-stopped
+    command: celery -A ai_store worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DB_ENGINE=postgresql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - C_FORCE_ROOT=true
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+# ==============================================================================
+# Persistent Named Volumes (Ensures PostgreSQL and Redis data is NEVER lost)
+# ==============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

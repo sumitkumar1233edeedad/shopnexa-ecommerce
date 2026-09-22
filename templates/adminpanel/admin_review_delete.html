@@ -1,0 +1,44 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Delete Review | Store Admin{% endblock %}
+
+{% block content %}
+<section class="content-card confirm-card" style="max-width: 580px; margin: 40px auto; padding: 32px;">
+    <div style="font-size: 36px; margin-bottom: 12px;">⚠️</div>
+    <h1 style="font-size: 22px; font-weight: 800; color: var(--admin-danger, #c0392b); margin-bottom: 8px;">
+        Delete Customer Review?
+    </h1>
+    <p style="color: var(--admin-text-secondary); margin-bottom: 24px; font-size: 14px;">
+        Are you sure you want to permanently delete this customer review? This will remove the rating and feedback from the product page. This action cannot be undone.
+    </p>
+
+    <!-- Review preview box -->
+    <div style="background: var(--admin-surface-muted, #f8fafc); border: 1px solid var(--admin-border, #e2e8f0); border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="color: var(--admin-black);">
+                {{ review.product.name|default:"Unknown Product" }}
+            </strong>
+            <span style="color: #f59e0b; font-weight: 700;">
+                ★ {{ review.rating }}/5
+            </span>
+        </div>
+        <div style="font-size: 13px; color: var(--admin-text-secondary); margin-bottom: 6px;">
+            By: <strong>{{ review.user.get_full_name|default:review.user.username }}</strong> (@{{ review.user.username }})
+        </div>
+        <div style="font-size: 13px; color: var(--admin-text); line-height: 1.5;">
+            "{{ review.product_review|default:"(No written comment)"|truncatechars:120 }}"
+        </div>
+    </div>
+
+    <form method="post" action="{% url 'admin_review_delete' review.slug|default:review.id %}">
+        {% csrf_token %}
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="{% url 'admin_reviews' %}" class="btn btn-secondary" style="padding: 10px 20px;">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-danger" style="padding: 10px 24px;">
+                Yes, Delete Review
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}

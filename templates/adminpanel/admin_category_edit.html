@@ -1,0 +1,6 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Edit Category{% endblock %}
+{% block content %}
+<section class="page-header"><div><h1>Edit Category</h1><p>Update category information.</p></div></section>
+<section class="content-card"><form method="post" class="admin-form">{% csrf_token %}<div class="form-group"><label>Category Name</label><input name="name" value="{{ category.name }}" required></div><div class="form-actions"><a href="{% url 'admin_categories' %}" class="btn btn-secondary">Cancel</a><button class="btn btn-primary">Save Changes</button></div></form></section>
+{% endblock %}

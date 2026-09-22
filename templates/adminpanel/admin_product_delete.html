@@ -1,0 +1,9 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Delete Product{% endblock %}
+{% block content %}
+<section class="content-card confirm-card">
+    <h1>Delete Product?</h1>
+    <p>Are you sure you want to delete <strong>{{ product.name }}</strong>?</p>
+    <form method="post">{% csrf_token %}<a href="{% url 'admin_products' %}" class="btn btn-secondary">Cancel</a> <button class="btn btn-danger">Delete Product</button></form>
+</section>
+{% endblock %}

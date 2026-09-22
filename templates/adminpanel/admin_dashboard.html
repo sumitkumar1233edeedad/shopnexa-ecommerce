@@ -1,0 +1,42 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Overview of your e-commerce store.</p>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card"><span>Total Products</span><strong>{{ total_products|default:0 }}</strong></article>
+    <article class="stat-card"><span>Categories</span><strong>{{ total_categories|default:0 }}</strong></article>
+    <article class="stat-card"><span>Customers</span><strong>{{ total_customers|default:0 }}</strong></article>
+    <article class="stat-card"><span>Orders</span><strong>{{ total_orders|default:0 }}</strong></article>
+</section>
+
+<section class="content-card">
+    <div class="section-heading">
+        <h2>Recent Orders</h2>
+        <a href="{% url 'admin_orders' %}" class="btn btn-secondary">View All</a>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead><tr><th>ID</th><th>Customer</th><th>Status</th><th>Total</th><th>Action</th></tr></thead>
+            <tbody>
+            {% for order in recent_orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.user }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>₹{{ order.total|floatformat:2 }}</td>
+                    <td><a href="{% url 'admin_order_detail' order.slug %}">View</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="empty-state">No orders found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

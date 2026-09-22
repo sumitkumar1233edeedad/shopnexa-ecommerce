@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account | STORE AI{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card" style="max-width: 500px;">
+    
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="brand-logo" style="justify-content: center; margin-bottom: 16px;">
+        <img src="{% static 'images/logo.png' %}" alt="STORE AI" class="brand-logo-img" style="height: 52px; width: auto;">
+      </div>
+      <h1 class="auth-title">Create an Account</h1>
+      <p class="auth-subtitle">Join us for exclusive deals, fast checkout, and personalized drops</p>
+    </div>
+
+    <!-- Registration Form -->
+    <form method="POST" action="{% url 'register' %}">
+      {% csrf_token %}
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">First Name *</label>
+          <input type="text" name="first_name" class="form-control" placeholder="First name" required>
+        </div>
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">Last Name</label>
+          <input type="text" name="last_name" class="form-control" placeholder="Last name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;">
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">Password *</label>
+          <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <div class="form-group" style="margin: 0;">
+          <label class="form-label">Confirm *</label>
+          <input type="password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        <span>Create Account</span>
+        <span>→</span>
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-light); font-size: 14px; color: var(--text-muted);">
+      Already have an account? 
+      <a href="{% url 'login' %}" style="color: var(--accent); font-weight: 700;">Sign In</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

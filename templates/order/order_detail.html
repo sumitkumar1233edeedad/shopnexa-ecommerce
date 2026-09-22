@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Order #{{ order.order_number }} | STORE AI{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/modern_theme.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-page">
+  <div class="container">
+
+    <!-- Top Navigation Bar -->
+    <div class="order-detail-header-nav">
+      <a href="{% url 'my_orders' %}" class="btn btn-ghost btn-sm" style="padding-left: 0;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <span>Back to My Orders</span>
+      </a>
+
+      <div class="order-detail-header-actions">
+        <button type="button" class="btn btn-outline btn-sm" onclick="window.print()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print Receipt</span>
+        </button>
+        <a href="{% url 'chat:customer_chat' %}" class="btn btn-primary btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Concierge</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Page Header & Status -->
+    <div class="order-detail-header">
+      <div class="order-detail-header-left">
+        <div class="order-detail-title-wrap">
+          <h1 class="order-detail-h1">Order #{{ order.order_number }}</h1>
+          <span class="order-status-badge status-{{ order.status }}">
+            <span class="order-status-dot"></span>
+            <span>{{ order.get_status_display }}</span>
+          </span>
+        </div>
+        <p style="font-size: 14px; color: var(--text-muted); margin: 0;">
+          Placed on <strong>{{ order.created_at|date:"l, d F Y" }}</strong> at {{ order.created_at|date:"h:i A" }}
+        </p>
+      </div>
+      
+      <!-- Printable Invoice Logo (visible on print or desktop header) -->
+      <div class="order-print-brand" style="display: none;">
+        <img src="{% static 'images/logo.png' %}" alt="STORE AI" style="height: 38px; width: auto;">
+      </div>
+    </div>
+
+    <!-- Order Timeline / Progress Tracker -->
+    {% if order.status != 'cancelled' %}
+      <div class="order-tracker-card">
+        <div class="order-tracker-card-title">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            <span>Delivery Progress</span>
+          </span>
+          <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">
+            {% if order.status == 'delivered' %}
+              Delivered Successfully
+            {% else %}
+              Estimated Delivery: 2-4 business days
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="order-tracker">
+          <div class="tracker-line">
+            <div 
+              class="tracker-line-progress" 
+              style="width: {% if order.status == 'delivered' %}100%{% elif order.status == 'shipped' %}75%{% elif order.status == 'processing' %}50%{% elif order.status == 'confirmed' %}25%{% else %}0%{% endif %};"
+            ></div>
+          </div>
+
+          <!-- Step 1: Placed -->
+          <div class="order-tracker-step completed">
+            <div class="tracker-node">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div class="tracker-label">Order Placed</div>
+            <div class="tracker-subtext">{{ order.created_at|date:"d M, h:i A" }}</div>
+          </div>
+
+          <!-- Step 2: Confirmed -->
+          <div class="order-tracker-step {% if order.status == 'confirmed' %}active{% elif order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}completed{% endif %}">
+            <div class="tracker-node">
+              {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              {% else %}2{% endif %}
+            </div>
+            <div class="tracker-label">Confirmed</div>
+            <div class="tracker-subtext">Payment Verified</div>
+          </div>
+
+          <!-- Step 3: Processing -->
+          <div class="order-tracker-step {% if order.status == 'processing' %}active{% elif order.status == 'shipped' or order.status == 'delivered' %}completed{% endif %}">
+            <div class="tracker-node">
+              {% if order.status == 'shipped' or order.status == 'delivered' %}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              {% else %}3{% endif %}
+            </div>
+            <div class="tracker-label">Processing</div>
+            <div class="tracker-subtext">Packed at Hub</div>
+          </div>
+
+          <!-- Step 4: Shipped -->
+          <div class="order-tracker-step {% if order.status == 'shipped' %}active{% elif order.status == 'delivered' %}completed{% endif %}">
+            <div class="tracker-node">
+              {% if order.status == 'delivered' %}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              {% else %}4{% endif %}
+            </div>
+            <div class="tracker-label">Shipped</div>
+            <div class="tracker-subtext">In Transit</div>
+          </div>
+
+          <!-- Step 5: Delivered -->
+          <div class="order-tracker-step {% if order.status == 'delivered' %}completed active{% endif %}">
+            <div class="tracker-node">
+              {% if order.status == 'delivered' %}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              {% else %}5{% endif %}
+            </div>
+            <div class="tracker-label">Delivered</div>
+            <div class="tracker-subtext">Doorstep Delivery</div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <!-- Cancelled Order Banner -->
+      <div style="background: var(--danger-light); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-xl); padding: 20px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 16px;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center; color: var(--danger); flex-shrink: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        </div>
+        <div>
+          <h3 style="font-size: 16px; font-weight: 800; color: var(--danger); margin: 0;">Order Cancelled</h3>
+          <p style="font-size: 13px; color: var(--danger-text); margin: 3px 0 0;">
+            This order has been cancelled. Any pre-paid amount will be credited back to your original payment method within 3-5 business days.
+          </p>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- 2-Column Responsive Dashboard Layout -->
+    <div class="order-detail-grid">
+      
+      <!-- Main Column: Items, Shipping, Payment -->
+      <div class="order-main-col">
+        
+        <!-- Ordered Items Card -->
+        <div class="order-section-card">
+          <div class="order-section-card-header">
+            <h2 class="order-section-card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              <span>Ordered Items ({{ order.total_items|default:order.items.count }})</span>
+            </h2>
+          </div>
+
+          <div class="order-detail-items-list">
+            {% for item in order.items.all %}
+              <div class="order-detail-item-row">
+                
+                <!-- Product Thumbnail -->
+                {% if item.variant.product.image %}
+                  <img 
+                    src="{{ item.variant.product.image.url }}" 
+                    alt="{{ item.variant.product.name }}" 
+                    class="order-detail-item-img"
+                    loading="lazy"
+                  >
+                {% else %}
+                  <div class="order-detail-item-img" style="display: flex; align-items: center; justify-content: center; background: var(--bg-subtle); color: var(--text-subtle);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                  </div>
+                {% endif %}
+
+                <!-- Details -->
+                <div class="order-detail-item-info">
+                  <h3 class="order-detail-item-title">
+                    {% if item.variant.product.slug %}
+                      <a href="{% url 'product_detail' item.variant.product.slug %}">
+                        {{ item.variant.product.name }}
+                      </a>
+                    {% else %}
+                      {{ item.variant.product.name }}
+                    {% endif %}
+                  </h3>
+
+                  <div class="order-detail-item-chips">
+                    {% if item.variant.color %}
+                      <span class="cart-item-chip">
+                        <span>Color:</span> <strong>{{ item.variant.color.name }}</strong>
+                      </span>
+                    {% endif %}
+                    {% if item.variant.size %}
+                      <span class="cart-item-chip">
+                        <span>Size:</span> <strong>{{ item.variant.size }}</strong>
+                      </span>
+                    {% endif %}
+                    {% if item.variant.sku %}
+                      <span class="cart-item-chip" style="color: var(--text-muted);">
+                        SKU: {{ item.variant.sku }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Quantity Chip -->
+                <div class="order-detail-item-qty">
+                  Qty: {{ item.quantity }}
+                </div>
+
+                <!-- Price Breakdown -->
+                <div class="order-detail-item-price-col">
+                  <div class="order-detail-subtotal-price">
+                    ₹{{ item.subtotal|floatformat:2 }}
+                  </div>
+                  <div class="order-detail-unit-price">
+                    ₹{{ item.price|floatformat:2 }} each
+                  </div>
+                </div>
+
+              </div>
+            {% empty %}
+              <p style="color: var(--text-muted); font-size: 14px; padding: 20px 0;">No items found for this order.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Shipping & Payment Information Side-by-Side -->
+        <div class="order-info-grid">
+          
+          <!-- Shipping Destination Card -->
+          <div class="order-address-box">
+            <div class="order-info-box-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Delivery Address</span>
+            </div>
+            
+            <div class="order-recipient-name">
+              {{ order.shipping_name|default:order.user.username|default:"Customer" }}
+            </div>
+
+            {% if order.shipping_phone %}
+              <div style="font-size: 13px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>{{ order.shipping_phone }}</span>
+              </div>
+            {% endif %}
+
+            <p class="order-address-text">
+              {{ order.shipping_address }}
+            </p>
+
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">
+              {{ order.shipping_city }}{% if order.shipping_pincode %} - {{ order.shipping_pincode }}{% endif %}
+            </div>
+          </div>
+
+          <!-- Payment Details Card -->
+          <div class="order-payment-box">
+            <div class="order-info-box-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+              <span>Payment Details</span>
+            </div>
+
+            {% if payment %}
+              <div class="order-payment-method-row">
+                <span>Method</span>
+                <span>{{ payment.payment_method|upper }}</span>
+              </div>
+
+              <div class="order-meta-info-row">
+                <span>Payment Status</span>
+                <span class="order-payment-badge {{ payment.status }}">
+                  {{ payment.status|title }}
+                </span>
+              </div>
+
+              {% if payment.transaction_id %}
+                <div class="order-meta-info-row">
+                  <span>Transaction ID</span>
+                  <strong style="color: var(--text-primary); font-family: monospace; font-size: 11px;">
+                    {{ payment.transaction_id }}
+                  </strong>
+                </div>
+              {% endif %}
+
+              {% if payment.paid_at %}
+                <div class="order-meta-info-row">
+                  <span>Paid At</span>
+                  <span>{{ payment.paid_at|date:"d M Y, h:i A" }}</span>
+                </div>
+              {% endif %}
+
+              {% if order.status == 'pending_payment' or payment.status == 'pending' and payment.payment_method != 'cod' %}
+                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border);">
+                  <a href="{% url 'payment_process' order.slug %}" class="btn btn-primary btn-block" style="font-size: 13px; font-weight: 700; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span>⚡ Complete Payment Now</span>
+                  </a>
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="order-payment-method-row">
+                <span>Method</span>
+                <span>Cash on Delivery (COD)</span>
+              </div>
+              <div class="order-meta-info-row">
+                <span>Payment Status</span>
+                <span class="order-payment-badge pending">Pay Upon Arrival</span>
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sidebar Column: Financial Summary & Support -->
+      <aside class="order-sidebar-col">
+        
+        <!-- Financial Breakdown Card -->
+        <div class="order-summary-card" style="position: sticky; top: calc(var(--header-height) + 20px);">
+          <h2 class="summary-title">Financial Summary</h2>
+
+          <div class="summary-row">
+            <span>Items Subtotal</span>
+            <strong>₹{{ order.items_subtotal|default:order.total_amount|floatformat:2 }}</strong>
+          </div>
+
+          {% if order.discount_amount and order.discount_amount > 0 %}
+            <div class="summary-row" style="color: var(--success); font-weight: 600;">
+              <span>
+                Discount {% if order.coupon %}(<strong>{{ order.coupon.code }}</strong>){% endif %}
+              </span>
+              <strong>− ₹{{ order.discount_amount|floatformat:2 }}</strong>
+            </div>
+          {% endif %}
+
+          <div class="summary-row">
+            <span>Express Shipping</span>
+            <span style="color: var(--success); font-weight: 700;">FREE</span>
+          </div>
+
+          <div class="summary-row" style="font-size: 13px; color: var(--text-muted);">
+            <span>Taxes & GST</span>
+            <span>Included in Price</span>
+          </div>
+
+          <div class="summary-row summary-total">
+            <span>Total Payable</span>
+            <span style="color: var(--accent);">₹{{ order.total_amount|default:order.total|floatformat:2 }}</span>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+            <a href="{% url 'products' %}" class="btn btn-outline btn-block btn-sm">
+              <span>Order Again / Shop Catalog</span>
+            </a>
+          </div>
+
+          <!-- Customer Service Assurance Box -->
+          <div class="cart-trust-badges">
+            <div class="trust-badge-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent); flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Need help? Our Concierge is available 24/7</span>
+            </div>
+            <div class="trust-badge-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent); flex-shrink: 0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span>Eligible for 7-day hassle-free replacement</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

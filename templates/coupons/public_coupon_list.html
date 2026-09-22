@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Exclusive Offers & Coupons | STORE AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 20px 70px;">
+
+  <!-- Header Banner -->
+  <div style="text-align: center; margin-bottom: 40px;">
+    <span class="badge-pill" style="background: var(--accent-light); color: var(--accent); padding: 6px 14px; font-size: 12px; margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12l-5-2.5L9 21l-5-2.5V7z"/></svg>
+      <span>STORE PROMOTIONS & OFFERS</span>
+    </span>
+    <h1 style="font-size: 36px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+      Exclusive Coupons & Offers
+    </h1>
+    <p style="color: var(--text-muted); font-size: 15px; max-width: 540px; margin: 0 auto;">
+      Save big on your next purchase. Copy any active code with one click and apply it directly at checkout.
+    </p>
+
+    {% if user.is_authenticated and weekly_info %}
+      <div style="display: inline-flex; align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-full); padding: 8px 18px; margin-top: 20px; font-size: 13px; box-shadow: var(--shadow-xs);">
+        <span style="color: var(--text-secondary);">Weekly Allowance:</span>
+        <strong style="color: {% if weekly_info.is_limit_reached %}var(--danger){% else %}var(--success){% endif %};">
+          {{ weekly_info.usage_count }} / {{ weekly_info.weekly_limit }} Used
+        </strong>
+        <span style="color: var(--text-subtle);">•</span>
+        <span style="color: var(--text-muted);">
+          {% if weekly_info.is_limit_reached %}
+            Limit reached for this week
+          {% else %}
+            {{ weekly_info.remaining }} use{{ weekly_info.remaining|pluralize }} remaining
+          {% endif %}
+        </span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Coupons Grid -->
+  {% if coupons %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; margin-bottom: 50px;">
+      {% for c in coupons %}
+        <div style="background: #ffffff; border: {% if c == best_coupon %}2px solid var(--accent){% else %}1.5px dashed var(--border){% endif %}; border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; justify-content: space-between; position: relative; transition: all var(--transition-fast);">
+          {% if c == best_coupon %}
+            <div style="position: absolute; top: -11px; right: 20px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 12px; letter-spacing: 0.5px; text-transform: uppercase;">
+              ⭐ Best Value Offer
+            </div>
+          {% endif %}
+          
+          <div>
+            <!-- Discount Badge -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+              <span class="badge-pill" style="background: var(--success-light); color: var(--success-text); font-size: 18px; font-weight: 800; padding: 4px 12px;">
+                {% if c.discount_type == 'percentage' %}
+                  {{ c.discount_value|floatformat:0 }}% OFF
+                {% else %}
+                  ₹{{ c.discount_value|floatformat:0 }} FLAT OFF
+                {% endif %}
+              </span>
+              <span style="font-size: 12px; color: var(--text-muted);">
+                Valid till {{ c.valid_until|date:"M d, Y" }}
+              </span>
+            </div>
+
+            <!-- Coupon Code Box -->
+            <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 16px;">
+              <code style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: var(--text-primary);">
+                {{ c.code }}
+              </code>
+              <button 
+                type="button" 
+                class="btn btn-primary btn-sm" 
+                onclick="copyCouponCode('{{ c.code }}', this)"
+                style="padding: 4px 12px; font-size: 12px;"
+              >
+                Copy Code
+              </button>
+            </div>
+
+            <!-- Description -->
+            {% if c.description %}
+              <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+                {{ c.description }}
+              </p>
+            {% endif %}
+
+            <!-- Conditions List -->
+            <ul style="font-size: 13px; color: var(--text-muted); line-height: 1.8; margin-bottom: 20px;">
+              <li>✓ Min order: <strong>₹{{ c.minimum_order_amount|floatformat:0 }}</strong></li>
+              {% if c.maximum_discount_amount %}
+                <li>✓ Max discount: <strong>₹{{ c.maximum_discount_amount|floatformat:0 }}</strong></li>
+              {% endif %}
+              <li>✓ Allowed: <strong>{{ c.weekly_user_limit }}x per week</strong></li>
+            </ul>
+          </div>
+
+          <!-- CTA Link -->
+          <div style="border-top: 1px solid var(--border-light); padding-top: 16px;">
+            {% if user.is_authenticated %}
+              <a href="{% url 'checkout' %}?apply_coupon={{ c.code }}" class="btn btn-accent btn-block btn-sm">
+                <span>Apply at Checkout</span>
+                <span>→</span>
+              </a>
+            {% else %}
+              <a href="{% url 'login' %}?next={% url 'checkout' %}?apply_coupon={{ c.code }}" class="btn btn-primary btn-block btn-sm">
+                Sign in to Use Coupon
+              </a>
+            {% endif %}
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state" style="max-width: 500px; margin: 40px auto; padding: 48px 24px;">
+      <div class="empty-state-icon" style="display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      </div>
+      <h2 class="empty-state-title">No active promotions right now</h2>
+      <p class="empty-state-desc">We regularly launch flash sales and discount coupons. Check back shortly!</p>
+      <a href="{% url 'products' %}" class="btn btn-primary btn-sm">
+        <span>Explore Products</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+function copyCouponCode(code, btn) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = "Copied! ✓";
+      btn.style.background = "var(--success)";
+      btn.style.borderColor = "var(--success)";
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.background = "";
+        btn.style.borderColor = "";
+      }, 2000);
+    }).catch(() => prompt("Copy coupon code:", code));
+  } else {
+    prompt("Copy coupon code:", code);
+  }
+}
+</script>
+{% endblock %}

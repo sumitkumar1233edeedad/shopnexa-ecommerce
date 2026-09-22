@@ -1,0 +1,104 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Product Details{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>{{ product.name }}</h1>
+        <p>Product details.</p>
+    </div>
+
+    {% if perms.products.change_product or user.is_superuser %}
+    <a
+        href="{% url 'admin_product_edit' product.slug %}"
+        class="btn btn-primary"
+    >
+        Edit Product
+    </a>
+    {% endif %}
+</section>
+
+<section class="content-card detail-grid">
+
+    <!-- Product -->
+    <div>
+        <h3>Product</h3>
+        <p>{{ product.name }}</p>
+    </div>
+
+    <!-- Category -->
+    <div>
+        <h3>Category</h3>
+
+        <p>
+            {% for category in product.cat.all %}
+                {{ category.name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                No category
+            {% endfor %}
+        </p>
+    </div>
+
+    <!-- Brand -->
+    <div>
+        <h3>Brand</h3>
+        <p>{{ product.brand }}</p>
+    </div>
+
+    <!-- Status -->
+    <div>
+        <h3>Status</h3>
+
+        <p>
+            {% if product.is_active %}
+                Active
+            {% else %}
+                Inactive
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Primary Image -->
+    <div>
+        <h3>Primary Image</h3>
+
+        {% if product.image %}
+            <img
+                src="{{ product.image.url }}"
+                alt="{{ product.name }}"
+                style="max-width: 250px; border-radius: 10px; border: 1px solid var(--admin-border);"
+            >
+        {% else %}
+            <p>No primary image</p>
+        {% endif %}
+    </div>
+
+    <!-- Gallery Images -->
+    <div>
+        <h3>Gallery Images ({{ product.images.count }})</h3>
+        {% if product.images.all %}
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;">
+                {% for g_img in product.images.all %}
+                    <img
+                        src="{{ g_img.image.url }}"
+                        alt="Gallery Image"
+                        style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid var(--admin-border);"
+                    >
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--admin-text-muted);">No gallery images</p>
+        {% endif %}
+    </div>
+
+    <!-- Description -->
+    <div class="full">
+        <h3>Description</h3>
+        <p>{{ product.description|linebreaks }}</p>
+    </div>
+
+</section>
+
+{% endblock %}

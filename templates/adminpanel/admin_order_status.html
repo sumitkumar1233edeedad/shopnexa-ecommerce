@@ -1,0 +1,6 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Update Order Status{% endblock %}
+{% block content %}
+<section class="page-header"><div><h1>Update Order #{{ order.id }}</h1><p>Change the current order status.</p></div></section>
+<section class="content-card"><form method="post" class="admin-form">{% csrf_token %}<div class="form-group"><label>Status</label><select name="status" required>{% for value,label in status_choices %}<option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div><div class="form-actions"><a href="{% url 'admin_order_detail' order.slug %}" class="btn btn-secondary">Cancel</a><button class="btn btn-primary">Update Status</button></div></form></section>
+{% endblock %}

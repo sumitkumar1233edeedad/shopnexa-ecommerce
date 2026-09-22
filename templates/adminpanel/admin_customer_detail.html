@@ -1,0 +1,6 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Customer Details{% endblock %}
+{% block content %}
+<section class="page-header"><div><h1>{{ customer.get_full_name|default:customer.username }}</h1><p>Customer account details.</p></div></section>
+<section class="content-card detail-grid"><div><h3>Username</h3><p>{{ customer.username }}</p></div><div><h3>Email</h3><p>{{ customer.email|default:"—" }}</p></div><div><h3>First Name</h3><p>{{ customer.first_name|default:"—" }}</p></div><div><h3>Last Name</h3><p>{{ customer.last_name|default:"—" }}</p></div><div><h3>Joined</h3><p>{{ customer.date_joined|date:"M d, Y" }}</p></div></section>
+{% endblock %}

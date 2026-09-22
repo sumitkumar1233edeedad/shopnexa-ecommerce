@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}STORE AI — Modern Lifestyle & Tech Shopping{% endblock %}
+
+{% block content %}
+
+<!-- =========================================================
+     HERO SECTION
+========================================================= -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-grid">
+      
+      <!-- Left Copy -->
+      <div class="hero-copy">
+        <div class="hero-eyebrow">
+          <span>✨</span>
+          <span>Next-Gen Smart Curation</span>
+        </div>
+
+        <h1 class="hero-title">
+          Everything you want.<br>
+          <span class="hero-title-gradient">Curated for everyday living.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Discover cutting-edge electronics, premium apparel, and modern footwear — handpicked with intelligent curation to elevate your daily routine.
+        </p>
+
+        <div class="hero-actions">
+          <a href="{% url 'products' %}" class="btn btn-primary btn-lg">
+            <span>Explore Collection</span>
+            <span>→</span>
+          </a>
+          <a href="{% url 'category_page' %}" class="btn btn-outline btn-lg">
+            <span>Shop Categories</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Visual Showcase -->
+      <div class="hero-visual-wrapper">
+        {% if latest_products %}
+          {% with hero_prod=latest_products.0 %}
+            <div class="hero-visual-card">
+              <span class="hero-floating-pill">Featured Drop</span>
+              {% if hero_prod.image %}
+                <img 
+                  src="{{ hero_prod.image.url }}" 
+                  alt="{{ hero_prod.name }}"
+                  class="hero-visual-img"
+                >
+              {% else %}
+                <div class="hero-visual-img" style="display: flex; align-items: center; justify-content: center; color: var(--text-subtle);">
+                  No Image
+                </div>
+              {% endif %}
+              
+              <div class="hero-visual-info">
+                <div style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                  Featured Selection
+                </div>
+                <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+                  <a href="{% url 'product_detail' hero_prod.slug %}">{{ hero_prod.name }}</a>
+                </h3>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 18px; font-weight: 800; color: var(--text-primary);">
+                    {% if hero_prod.default_variant %}₹{{ hero_prod.default_variant.price }}{% else %}Explore Details{% endif %}
+                  </span>
+                  <a href="{% url 'product_detail' hero_prod.slug %}" class="btn btn-primary btn-sm">
+                    View Product →
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endwith %}
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Trust Badges Bar -->
+    <div class="trust-bar">
+      <div class="trust-item">
+        <div class="trust-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        </div>
+        <div>
+          <div class="trust-item-title">Free Express Shipping</div>
+          <div class="trust-item-desc">On eligible orders over ₹500</div>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </div>
+        <div>
+          <div class="trust-item-title">7-Day Easy Returns</div>
+          <div class="trust-item-desc">Doorstep pickup & quick refund</div>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <div>
+          <div class="trust-item-title">100% Secure Checkout</div>
+          <div class="trust-item-desc">Encrypted UPI, Cards & NetBanking</div>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <div>
+          <div class="trust-item-title">24/7 Concierge</div>
+          <div class="trust-item-desc">Live assistance whenever you need</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- =========================================================
+     FEATURED PRODUCTS SECTION
+========================================================= -->
+<section style="padding: 40px 0 60px;">
+  <div class="container">
+    
+    <!-- Section Header -->
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <span style="font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px;">
+          Curated Essentials
+        </span>
+        <h2 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin-top: 4px;">
+          Trending Products
+        </h2>
+      </div>
+      <a href="{% url 'products' %}" class="btn btn-outline btn-sm">
+        <span>View Full Catalog</span>
+        <span>→</span>
+      </a>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="product-grid">
+      {% for product in products %}
+        <article class="product-card" id="home-product-{{ product.id }}">
+          
+          <!-- Media Wrapper -->
+          <div class="product-media">
+            <a href="{% url 'product_detail' product.slug %}" aria-label="{{ product.name }}">
+              {% if product.image %}
+                <img 
+                  src="{{ product.image.url }}" 
+                  alt="{{ product.name }}" 
+                  class="product-media-img"
+                  loading="lazy"
+                >
+              {% else %}
+                <div class="product-no-img" style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-subtle); height: 100%;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                  <span style="font-size: 11px; margin-top: 4px;">No image</span>
+                </div>
+              {% endif %}
+            </a>
+
+            <!-- Badges -->
+            <div class="card-badges">
+              {% if product.default_variant and not product.default_variant.is_in_stock %}
+                <span class="badge-pill badge-out">Out of Stock</span>
+              {% else %}
+                <span class="badge-pill badge-new">Popular</span>
+              {% endif %}
+            </div>
+
+            <!-- Wishlist Button -->
+            {% if user.is_authenticated %}
+              <form action="{% url 'toggle_wishlist' product.slug %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button 
+                  type="submit" 
+                  class="card-wishlist-btn {% if product.id in wishlist_product_ids %}active{% endif %}"
+                  aria-label="Wishlist toggle"
+                >
+                  {% if product.id in wishlist_product_ids %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    </svg>
+                  {% else %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                    </svg>
+                  {% endif %}
+                </button>
+              </form>
+            {% else %}
+              <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="card-wishlist-btn" aria-label="Sign in to save wishlist">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                </svg>
+              </a>
+            {% endif %}
+          </div>
+
+          <!-- Body -->
+          <div class="product-card-body">
+            <div class="product-card-meta">
+              {% with cat=product.cat.first %}
+                <span class="product-card-cat">{{ cat.name|default:"Lifestyle" }}</span>
+              {% endwith %}
+              <div class="product-card-rating">
+                <span>★</span>
+                <span>{{ product.average_rating|default:"5.0" }}</span>
+              </div>
+            </div>
+
+            <h3 class="product-card-title">
+              <a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a>
+            </h3>
+
+            <div class="product-card-price-row">
+              {% if product.min_price and product.max_price %}
+                {% if product.min_price == product.max_price %}
+                  <span class="product-price-current">₹{{ product.min_price }}</span>
+                {% else %}
+                  <span class="product-price-current">₹{{ product.min_price }} - ₹{{ product.max_price }}</span>
+                {% endif %}
+              {% elif product.price %}
+                <span class="product-price-current">₹{{ product.price }}</span>
+              {% else %}
+                <span class="product-price-current" style="font-size: 14px; color: var(--text-muted);">View Options</span>
+              {% endif %}
+            </div>
+
+            <div class="product-card-actions">
+              <a href="{% url 'product_detail' product.slug %}" class="btn-card-action">
+                <span>View Details</span>
+                <span>→</span>
+              </a>
+            </div>
+          </div>
+
+        </article>
+      {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <div class="empty-state-icon" style="display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <h3 class="empty-state-title">No products available</h3>
+          <p class="empty-state-desc">We are stocking new arrivals. Please check back shortly.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<!-- =========================================================
+     CATEGORIES SHOWCASE
+========================================================= -->
+<section style="padding: 40px 0 60px; background: #ffffff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    
+    <div style="text-align: center; margin-bottom: 36px;">
+      <span style="font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px;">
+        Explore Collections
+      </span>
+      <h2 style="font-size: 32px; font-weight: 800; color: var(--text-primary); margin: 6px 0 10px;">
+        Shop by Category
+      </h2>
+      <p style="font-size: 15px; color: var(--text-muted); max-width: 500px; margin: 0 auto;">
+        Browse curated collections designed to effortlessly blend into your daily lifestyle.
+      </p>
+    </div>
+
+    <div class="category-grid">
+      {% for category in categories %}
+        <a href="{% url 'category_page' %}?category={{ category.id }}" class="category-card" aria-label="Browse {{ category.name }}">
+          {% if category.first_product and category.first_product.image %}
+            <img 
+              src="{{ category.first_product.image.url }}" 
+              alt="{{ category.name }}" 
+              class="category-card-img"
+              loading="lazy"
+            >
+          {% else %}
+            <div style="width: 100%; height: 100%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+              📁
+            </div>
+          {% endif %}
+          
+          <div class="category-card-overlay">
+            <h3 class="category-card-name">{{ category.name }}</h3>
+            <span class="category-card-count">Explore Collection →</span>
+          </div>
+        </a>
+      {% empty %}
+        <p style="text-align: center; color: var(--text-muted); grid-column: 1 / -1;">Categories will appear here.</p>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<!-- =========================================================
+     PROMOTIONAL BANNER
+========================================================= -->
+<section style="padding: 60px 0;">
+  <div class="container">
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-radius: var(--radius-xl); padding: 48px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; box-shadow: var(--shadow-lg);">
+      <div style="max-width: 560px;">
+        <span style="background: rgba(255, 255, 255, 0.15); color: #ffd700; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12l-5-2.5L9 21l-5-2.5V7z"/></svg>
+          <span>Member Privilege</span>
+        </span>
+        <h2 style="font-size: 32px; font-weight: 800; margin: 12px 0 10px; line-height: 1.2;">
+          Unlock Exclusive Weekly Deals & Instant Coupons
+        </h2>
+        <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6;">
+          Take advantage of limited-time discounts on our electronics and lifestyle collections. Instant one-click copy codes ready to apply at checkout.
+        </p>
+      </div>
+
+      <div>
+        <a href="{% url 'coupons:coupon_list' %}" class="btn btn-accent btn-lg" style="background: #ffd700; color: #0f172a; border-color: #ffd700; font-weight: 800;">
+          <span>Explore Coupons</span>
+          <span>→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

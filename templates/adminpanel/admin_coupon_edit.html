@@ -1,0 +1,204 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Edit Coupon {{ coupon.code }}{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Edit Coupon: {{ coupon.code }}</h1>
+        <p>Update coupon configuration, validity, or usage limits.</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <a href="{% url 'admin_coupon_detail' coupon.slug %}" class="btn btn-secondary">
+            View Details
+        </a>
+        <a href="{% url 'admin_coupon_delete' coupon.slug %}" class="btn btn-danger">
+            Delete
+        </a>
+    </div>
+</section>
+
+<section class="content-card">
+
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+            <!-- Coupon Code -->
+            <div class="form-group">
+                <label for="id_code">Coupon Code *</label>
+                <input
+                    id="id_code"
+                    name="code"
+                    type="text"
+                    value="{{ coupon.code }}"
+                    style="text-transform: uppercase;"
+                    required
+                >
+            </div>
+
+            <!-- Discount Type -->
+            <div class="form-group">
+                <label for="id_discount_type">Discount Type *</label>
+                <select id="id_discount_type" name="discount_type" required>
+                    <option value="percentage" {% if coupon.discount_type == 'percentage' %}selected{% endif %}>
+                        Percentage (%)
+                    </option>
+                    <option value="fixed" {% if coupon.discount_type == 'fixed' %}selected{% endif %}>
+                        Fixed Amount (₹)
+                    </option>
+                </select>
+            </div>
+
+            <!-- Discount Value -->
+            <div class="form-group">
+                <label for="id_discount_value">Discount Value *</label>
+                <input
+                    id="id_discount_value"
+                    name="discount_value"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value="{{ coupon.discount_value }}"
+                    required
+                >
+            </div>
+
+            <!-- Minimum Order Amount -->
+            <div class="form-group">
+                <label for="id_minimum_order_amount">Minimum Order Amount (₹)</label>
+                <input
+                    id="id_minimum_order_amount"
+                    name="minimum_order_amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value="{{ coupon.minimum_order_amount }}"
+                >
+            </div>
+
+            <!-- Maximum Discount Amount -->
+            <div class="form-group">
+                <label for="id_maximum_discount_amount">Maximum Discount Cap (₹)</label>
+                <input
+                    id="id_maximum_discount_amount"
+                    name="maximum_discount_amount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value="{{ coupon.maximum_discount_amount|default:'' }}"
+                    placeholder="Optional cap"
+                >
+                <small style="color: var(--admin-text-muted); font-size: 11px;">Caps total discount amount for percentage coupons.</small>
+            </div>
+
+            <!-- Weekly User Limit (Key Requirement) -->
+            <div class="form-group">
+                <label for="id_weekly_user_limit">Weekly User Limit *</label>
+                <input
+                    id="id_weekly_user_limit"
+                    name="weekly_user_limit"
+                    type="number"
+                    min="1"
+                    value="{{ coupon.weekly_user_limit }}"
+                    required
+                >
+                <small style="color: var(--admin-text-muted); font-size: 11px;">Max times a customer can use coupons in one week (Default 5).</small>
+            </div>
+
+            <!-- Valid From -->
+            <div class="form-group">
+                <label for="id_valid_from">Valid From *</label>
+                <input
+                    id="id_valid_from"
+                    name="valid_from"
+                    type="datetime-local"
+                    value="{{ coupon.valid_from|date:'Y-m-d\TH:i' }}"
+                    required
+                >
+            </div>
+
+            <!-- Valid Until -->
+            <div class="form-group">
+                <label for="id_valid_until">Valid Until *</label>
+                <input
+                    id="id_valid_until"
+                    name="valid_until"
+                    type="datetime-local"
+                    value="{{ coupon.valid_until|date:'Y-m-d\TH:i' }}"
+                    required
+                >
+            </div>
+
+            <!-- Global Usage Limit -->
+            <div class="form-group">
+                <label for="id_usage_limit">Total Global Usage Limit</label>
+                <input
+                    id="id_usage_limit"
+                    name="usage_limit"
+                    type="number"
+                    min="1"
+                    value="{{ coupon.usage_limit|default:'' }}"
+                    placeholder="Leave blank for unlimited"
+                >
+                <small style="color: var(--admin-text-muted); font-size: 11px;">
+                    Currently used: <strong>{{ coupon.used_count }}</strong> times.
+                </small>
+            </div>
+
+            <!-- Per User Lifetime Limit -->
+            <div class="form-group">
+                <label for="id_per_user_limit">Lifetime Per-User Limit</label>
+                <input
+                    id="id_per_user_limit"
+                    name="per_user_limit"
+                    type="number"
+                    min="1"
+                    value="{{ coupon.per_user_limit|default:'' }}"
+                    placeholder="Leave blank for unlimited"
+                >
+                <small style="color: var(--admin-text-muted); font-size: 11px;">Max lifetime orders with this coupon per customer.</small>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full">
+                <label for="id_description">Description / Terms</label>
+                <textarea
+                    id="id_description"
+                    name="description"
+                    rows="3"
+                >{{ coupon.description }}</textarea>
+            </div>
+
+            <!-- Active Checkbox -->
+            <div class="form-group full" style="display: flex; align-items: center; gap: 8px;">
+                <input
+                    id="id_is_active"
+                    name="is_active"
+                    type="checkbox"
+                    {% if coupon.is_active %}checked{% endif %}
+                    style="width: 18px; height: 18px; cursor: pointer;"
+                >
+                <label for="id_is_active" style="margin: 0; cursor: pointer; font-weight: 500;">
+                    Coupon is Active (Customers can apply this coupon)
+                </label>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'admin_coupons' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                Save Changes
+            </button>
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

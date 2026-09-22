@@ -1,0 +1,48 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Customers</h1>
+        <p>Manage customer accounts.</p>
+    </div>
+</section>
+
+<section class="content-card">
+    <form method="get" class="filter-bar">
+        <input type="search" name="search" value="{{ search|default:'' }}" placeholder="Search customers...">
+        <button class="btn btn-secondary">Search</button>
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Joined</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.username }}</td>
+                    <td>{{ customer.email|default:"—" }}</td>
+                    <td>{{ customer.get_full_name|default:customer.username }}</td>
+                    <td>{{ customer.date_joined|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'admin_customer_detail' customer.profile.slug|default:customer.username %}">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">No customers found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

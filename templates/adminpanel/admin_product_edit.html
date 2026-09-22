@@ -1,0 +1,381 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Edit Product</h1>
+        <p>Update {{ product.name }}.</p>
+    </div>
+</section>
+
+<section class="content-card">
+
+    <form method="post" enctype="multipart/form-data" class="admin-form">
+
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+            <!-- Product Name -->
+            <div class="form-group">
+                <label>Product Name</label>
+
+                <input
+                    name="name"
+                    value="{{ product.name }}"
+                    type="text"
+                    required
+                >
+            </div>
+
+            <!-- Brand -->
+            <div class="form-group">
+                <label>Brand</label>
+
+                <input
+                    name="brand"
+                    value="{{ product.brand }}"
+                    type="text"
+                    placeholder="Enter brand name"
+                    required
+                >
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full">
+                <label>Description</label>
+
+                <textarea
+                    name="description"
+                    rows="6"
+                >{{ product.description }}</textarea>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+                <label>Category</label>
+
+                <select name="category" required>
+
+                    {% for category in categories %}
+
+                        <option
+                            value="{{ category.id }}"
+                            {% if category in product.cat.all %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ category.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 1. MAIN PRIMARY PRODUCT IMAGE              -->
+            <!-- ========================================== -->
+            <div class="form-group full" style="background: var(--admin-surface-soft, #fafafa); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--admin-border);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="font-size: 14px; font-weight: 700; color: var(--admin-text); display: block; margin-bottom: 4px;">
+                            Section 1: Main Product Image
+                        </label>
+                        <p style="font-size: 12px; color: var(--admin-text-muted); margin-bottom: 10px;">
+                            Replace the primary cover image shown on product cards and listings. Supported: JPG, PNG, WEBP, GIF (Max 10MB).
+                        </p>
+                        <input
+                            name="image"
+                            id="editMainImageInput"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                        >
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        {% if product.image %}
+                            <img
+                                id="editMainImagePreview"
+                                src="{{ product.image.url }}"
+                                alt="{{ product.name }}"
+                                style="width: 86px; height: 86px; object-fit: cover; border-radius: var(--radius-md); border: 2px solid var(--admin-border); box-shadow: var(--shadow-sm);"
+                            >
+                        {% else %}
+                            <small style="color: var(--admin-text-muted); font-size: 12px;">No primary image set.</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 2. CURRENT GALLERY IMAGES                  -->
+            <!-- ========================================== -->
+            <div class="form-group full" style="background: var(--admin-surface-soft, #fafafa); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--admin-border);">
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 14px; font-weight: 700; color: var(--admin-text); display: block; margin-bottom: 4px;">
+                        Current Gallery Images ({{ product.images.count }})
+                    </label>
+                    <p style="font-size: 12px; color: var(--admin-text-muted); margin: 0;">
+                        Manage or delete previously uploaded gallery angles.
+                    </p>
+                </div>
+                
+                {% if product.images.all %}
+                    <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+                        {% for g_img in product.images.all %}
+                            <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; background: #ffffff; border: 1px solid var(--admin-border); border-radius: var(--radius-md); box-shadow: var(--shadow-xs);">
+                                <img
+                                    src="{{ g_img.image.url }}"
+                                    alt="Gallery image"
+                                    style="width: 86px; height: 86px; object-fit: cover; border-radius: var(--radius-sm);"
+                                >
+                                <a
+                                    href="{% url 'admin_product_image_delete' g_img.id %}"
+                                    onclick="return confirm('Are you sure you want to remove this image?');"
+                                    style="font-size: 11px; color: var(--admin-danger, #c0392b); text-decoration: none; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: rgba(192, 57, 43, 0.1);"
+                                >
+                                    ✕ Remove
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="font-size: 13px; color: var(--admin-text-muted); margin-top: 6px;">No gallery images currently uploaded.</p>
+                {% endif %}
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 3. ADD NEW GALLERY IMAGES (DYNAMIC SLOTS)  -->
+            <!-- ========================================== -->
+            <div class="form-group full" style="background: var(--admin-surface-soft, #fafafa); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--admin-border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--admin-border-soft, #eee);">
+                    <div>
+                        <label style="font-size: 14px; font-weight: 700; color: var(--admin-text); display: block; margin-bottom: 4px;">
+                            Section 2: Add More Gallery Images
+                        </label>
+                        <p style="font-size: 12px; color: var(--admin-text-muted); margin: 0;">
+                            Upload additional images to this product's gallery.
+                        </p>
+                    </div>
+
+                    <!-- Dynamic Count Selector -->
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <label for="editImageCountSelector" style="font-size: 13px; font-weight: 600; color: var(--admin-text); margin: 0;">
+                            How many images do you want to upload?
+                        </label>
+                        <select id="editImageCountSelector" style="padding: 7px 12px; border-radius: var(--radius-md); border: 1px solid var(--admin-border-strong); font-size: 13px; font-weight: 600; background: #ffffff; cursor: pointer;">
+                            <option value="">Select count...</option>
+                            <option value="1">1 Image</option>
+                            <option value="2">2 Images</option>
+                            <option value="3">3 Images</option>
+                            <option value="4">4 Images</option>
+                            <option value="5">5 Images</option>
+                            <option value="6">6 Images</option>
+                            <option value="7">7 Images</option>
+                            <option value="8">8 Images</option>
+                        </select>
+                        <button type="button" id="editAddSlotBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                            + Add Slot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container where dynamic image upload sections appear -->
+                <div id="editDynamicGallerySlots" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;"></div>
+
+                <div id="editEmptyPrompt" style="padding: 24px; text-align: center; border: 2px dashed var(--admin-border); border-radius: var(--radius-md); color: var(--admin-text-muted); font-size: 13px;">
+                    Select how many new images you want to upload from the dropdown above (e.g. 4), or click "+ Add Slot".
+                </div>
+            </div>
+
+            <!-- Active -->
+            <div class="form-group full">
+
+                <label class="checkbox">
+
+                    <input
+                        name="is_active"
+                        type="checkbox"
+                        {% if product.is_active %}
+                            checked
+                        {% endif %}
+                    >
+
+                    Active product
+
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+
+            <a
+                href="{% url 'admin_products' %}"
+                class="btn btn-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+            >
+                Save Changes
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ALLOWED_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+    function validateFileInput(input) {
+        if (!input.files || input.files.length === 0) return true;
+        const file = input.files[0];
+        if (file.size === 0) {
+            alert("The selected file is empty (0 bytes). Please choose a valid image file.");
+            input.value = "";
+            return false;
+        }
+        if (file.size > MAX_SIZE) {
+            alert(`File "${file.name}" exceeds the 10MB limit (${(file.size / (1024 * 1024)).toFixed(1)} MB). Please select a smaller image.`);
+            input.value = "";
+            return false;
+        }
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        if (!ALLOWED_EXTS.includes(ext)) {
+            alert(`Format "${ext}" is not supported. Please choose a valid JPG, PNG, WEBP, or GIF image.`);
+            input.value = "";
+            return false;
+        }
+        return true;
+    }
+
+    // 1. Preview & validate replacement primary image
+    const mainInput = document.getElementById("editMainImageInput");
+    const mainPreview = document.getElementById("editMainImagePreview");
+    if (mainInput && mainPreview) {
+        mainInput.addEventListener("change", function(e) {
+            if (!validateFileInput(mainInput)) {
+                return;
+            }
+            const file = e.target.files[0];
+            if (file) {
+                mainPreview.src = URL.createObjectURL(file);
+            }
+        });
+    }
+
+    // 2. Dynamic Gallery Slots in Edit Product
+    const editCountSelector = document.getElementById("editImageCountSelector");
+    const editAddSlotBtn = document.getElementById("editAddSlotBtn");
+    const editSlotsContainer = document.getElementById("editDynamicGallerySlots");
+    const editEmptyPrompt = document.getElementById("editEmptyPrompt");
+
+    function createEditSlot(index) {
+        const slot = document.createElement("div");
+        slot.className = "gallery-upload-card";
+        slot.style.cssText = "background: #ffffff; border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative; box-shadow: var(--shadow-xs);";
+        
+        slot.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="slot-title" style="font-size: 13px; font-weight: 700; color: var(--admin-text);">
+                    New Gallery Image #${index}
+                </span>
+                <button type="button" class="remove-slot-btn" title="Remove this image slot" style="background: none; border: none; color: var(--admin-danger, #c0392b); font-size: 15px; font-weight: bold; cursor: pointer; padding: 0 4px;">
+                    ✕
+                </button>
+            </div>
+            <input type="file" name="gallery_images" accept="image/jpeg,image/png,image/webp,image/gif" class="slot-file-input" style="font-size: 12px; width: 100%;">
+            <div class="slot-preview" style="display: none; margin-top: 4px;">
+                <img src="" alt="Preview" style="width: 100%; height: 110px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--admin-border-soft, #eee);">
+            </div>
+        `;
+
+        const fileInput = slot.querySelector(".slot-file-input");
+        const previewBox = slot.querySelector(".slot-preview");
+        const previewImg = previewBox.querySelector("img");
+        const removeBtn = slot.querySelector(".remove-slot-btn");
+
+        fileInput.addEventListener("change", function(e) {
+            if (!validateFileInput(fileInput)) {
+                previewBox.style.display = "none";
+                return;
+            }
+            const file = e.target.files[0];
+            if (file) {
+                previewImg.src = URL.createObjectURL(file);
+                previewBox.style.display = "block";
+            } else {
+                previewBox.style.display = "none";
+            }
+        });
+
+        removeBtn.addEventListener("click", function() {
+            slot.remove();
+            updateEditSlotNumbers();
+        });
+
+        return slot;
+    }
+
+    function updateEditSlotNumbers() {
+        const allSlots = editSlotsContainer.querySelectorAll(".gallery-upload-card");
+        if (allSlots.length === 0) {
+            editEmptyPrompt.style.display = "block";
+            if (editCountSelector) editCountSelector.value = "";
+        } else {
+            editEmptyPrompt.style.display = "none";
+            allSlots.forEach((slot, i) => {
+                slot.querySelector(".slot-title").textContent = `New Gallery Image #${i + 1}`;
+            });
+        }
+    }
+
+    if (editCountSelector) {
+        editCountSelector.addEventListener("change", function() {
+            const count = parseInt(editCountSelector.value, 10);
+            if (!isNaN(count) && count > 0) {
+                editSlotsContainer.innerHTML = "";
+                for (let i = 1; i <= count; i++) {
+                    editSlotsContainer.appendChild(createEditSlot(i));
+                }
+                editEmptyPrompt.style.display = "none";
+            }
+        });
+    }
+
+    if (editAddSlotBtn) {
+        editAddSlotBtn.addEventListener("click", function() {
+            const currentCount = editSlotsContainer.querySelectorAll(".gallery-upload-card").length;
+            editSlotsContainer.appendChild(createEditSlot(currentCount + 1));
+            editEmptyPrompt.style.display = "none";
+        });
+    }
+
+    // 3. Clean up empty file slots before submission
+    const form = document.querySelector(".admin-form");
+    if (form) {
+        form.addEventListener("submit", function() {
+            const galleryInputs = form.querySelectorAll('input[name="gallery_images"]');
+            galleryInputs.forEach(input => {
+                if (!input.files || input.files.length === 0) {
+                    input.disabled = true; // Prevents transmitting empty file parts
+                }
+            });
+        });
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,145 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 30px 25px;
+            text-align: center;
+            color: #334155;
+        }
+
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .desc {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #64748b;
+            margin-bottom: 25px;
+        }
+
+        .otp-box {
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 18px;
+            display: inline-block;
+            margin: 10px 0 25px;
+        }
+
+        .otp-code {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 8px;
+            color: #0284c7;
+            font-family: monospace;
+        }
+
+        .timer-badge {
+            display: inline-block;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .warning {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 20px;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>AI Store</h1>
+    </div>
+
+    <div class="content">
+
+        <div class="greeting">
+            Hello, {{ user_display }}!
+        </div>
+
+        <div class="desc">
+            {{ body_text }}
+        </div>
+
+        <div class="otp-box">
+            <span class="otp-code">
+                {{ otp_code }}
+            </span>
+        </div>
+
+        <div>
+            <span class="timer-badge">
+                ⏱️ Valid for 10 Minutes Only
+            </span>
+        </div>
+
+        <p class="warning">
+            If you did not request this OTP,
+            you can safely ignore this email.
+        </p>
+
+    </div>
+
+    <div class="footer">
+        &copy; 2026 AI Store. All rights reserved.
+    </div>
+
+</div>
+
+</body>
+</html>
+ 

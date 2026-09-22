@@ -1,0 +1,123 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Variants{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Product Variants</h1>
+        <p>Manage size, color, SKU, price and stock variants.</p>
+    </div>
+
+    {% if perms.products.add_productvariant or user.is_superuser %}
+    <a href="{% url 'admin_variant_add' %}" class="btn btn-primary">
+        + Add Variant
+    </a>
+    {% endif %}
+</section>
+
+<section class="content-card">
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Size</th>
+                    <th>Color</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for variant in variants %}
+
+                <tr>
+
+                    <!-- Product -->
+                    <td>
+                        {{ variant.product.name }}
+                    </td>
+
+                    <!-- SKU -->
+                    <td>
+                        {{ variant.sku }}
+                    </td>
+
+                    <!-- Size -->
+                    <td>
+                        {{ variant.size|default:"-" }}
+                    </td>
+
+                    <!-- Color -->
+                    <td>
+                        {% if variant.color %}
+                            {{ variant.color.name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <!-- Price -->
+                    <td>
+                        ₹{{ variant.price }}
+                    </td>
+
+                    <!-- Stock -->
+                    <td>
+                        {% if variant.stock %}
+                            {{ variant.stock.available_quantity }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </td>
+
+                    <!-- Actions -->
+                    <td>
+
+                        {% if perms.products.change_productvariant or user.is_superuser %}
+                        <a
+                            href="{% url 'admin_variant_edit' variant.slug %}"
+                        >
+                            Edit
+                        </a>
+                        {% endif %}
+
+                        {% if perms.products.delete_productvariant or user.is_superuser %}
+                        <a
+                            href="{% url 'admin_variant_delete' variant.slug %}"
+                        >
+                            Delete
+                        </a>
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        No variants found.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Saved Wishlist | STORE AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 30px 20px 60px;">
+
+  <!-- Header -->
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <h1 style="font-size: 28px; font-weight: 800; color: var(--text-primary);">My Saved Wishlist</h1>
+      <p style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">
+        {% if wishlist_items %}
+          You have {{ wishlist_items.count }} item{{ wishlist_items.count|pluralize }} saved
+        {% else %}
+          Your saved items will appear here
+        {% endif %}
+      </p>
+    </div>
+
+    <a href="{% url 'products' %}" class="btn btn-outline btn-sm">
+      <span>Continue Shopping</span>
+      <span>→</span>
+    </a>
+  </div>
+
+  <!-- Wishlist Products Grid -->
+  {% if wishlist_items %}
+    <div class="product-grid">
+      {% for item in wishlist_items %}
+        <article class="product-card" id="wishlist-item-{{ item.id }}">
+          
+          <div class="product-media">
+            <a href="{% url 'product_detail' item.product.slug %}">
+              {% if item.product.image %}
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="product-media-img" loading="lazy">
+              {% else %}
+                <div class="product-no-img">
+                  <span style="font-size: 24px;">📦</span>
+                  <span>No image</span>
+                </div>
+              {% endif %}
+            </a>
+
+            <!-- Remove Button -->
+            <form method="POST" action="{% url 'remove_from_wishlist' item.product.slug %}">
+              {% csrf_token %}
+              <button 
+                type="submit" 
+                class="card-wishlist-btn active" 
+                title="Remove from wishlist"
+                aria-label="Remove {{ item.product.name }} from wishlist"
+              >
+                ✕
+              </button>
+            </form>
+          </div>
+
+          <div class="product-card-body">
+            <div class="product-card-meta">
+              <span class="product-card-cat">{{ item.product.brand|default:"STORE AI" }}</span>
+              <div class="product-card-rating">
+                <span>★</span>
+                <span>{{ item.product.average_rating|default:"5.0" }}</span>
+              </div>
+            </div>
+
+            <h3 class="product-card-title">
+              <a href="{% url 'product_detail' item.product.slug %}">{{ item.product.name }}</a>
+            </h3>
+
+            <div class="product-card-price-row">
+              <span class="product-price-current">
+                {% if item.product.price %}
+                  ₹{{ item.product.price }}
+                {% elif item.product.min_price %}
+                  ₹{{ item.product.min_price }}
+                {% else %}
+                  Explore options
+                {% endif %}
+              </span>
+            </div>
+
+            <div class="product-card-actions">
+              <a href="{% url 'product_detail' item.product.slug %}" class="btn-card-action">
+                <span>View Product</span>
+                <span>→</span>
+              </a>
+            </div>
+          </div>
+
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state" style="max-width: 500px; margin: 40px auto; padding: 48px 24px;">
+      <div class="empty-state-icon" style="display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      </div>
+      <h2 class="empty-state-title">Your wishlist is empty</h2>
+      <p class="empty-state-desc">
+        Save items you're interested in by tapping the heart icon on any product in our catalog.
+      </p>
+      <a href="{% url 'products' %}" class="btn btn-primary btn-sm">
+        <span>Explore Products</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

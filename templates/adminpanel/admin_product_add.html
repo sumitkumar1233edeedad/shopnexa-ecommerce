@@ -1,0 +1,328 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Add Product{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Add Product</h1>
+        <p>Create a new store product.</p>
+    </div>
+</section>
+
+<section class="content-card">
+
+    <form method="post" enctype="multipart/form-data" class="admin-form">
+
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+            <!-- Product Name -->
+            <div class="form-group">
+                <label>Product Name</label>
+                <input
+                    name="name"
+                    type="text"
+                    value="{{ form_data.name|default:'' }}"
+                    placeholder="Enter product name"
+                    required
+                >
+            </div>
+
+            <!-- Brand -->
+            <div class="form-group">
+                <label>Brand</label>
+                <input
+                    name="brand"
+                    type="text"
+                    value="{{ form_data.brand|default:'' }}"
+                    placeholder="Enter brand name"
+                    required
+                >
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full">
+                <label>Description</label>
+                <textarea
+                    name="description"
+                    rows="6"
+                    placeholder="Enter product description"
+                >{{ form_data.description|default:'' }}</textarea>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+                <label>Category</label>
+
+                <select name="category" required>
+                    <option value="">Select category</option>
+
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if form_data.category == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 1. MAIN / PRIMARY PRODUCT IMAGE            -->
+            <!-- ========================================== -->
+            <div class="form-group full" style="background: var(--admin-surface-soft, #fafafa); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--admin-border);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="font-size: 14px; font-weight: 700; color: var(--admin-text); display: block; margin-bottom: 4px;">
+                            Section 1: Main Product Image
+                        </label>
+                        <p style="font-size: 12px; color: var(--admin-text-muted); margin-bottom: 10px;">
+                            The main cover photo displayed on shop cards, category listings, and checkout. Supported: JPG, PNG, WEBP, GIF (Max 10MB).
+                        </p>
+                        <input
+                            name="image"
+                            id="mainImageInput"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                        >
+                    </div>
+                    <div id="mainImagePreview" style="display: none;">
+                        <img src="" alt="Main Preview" style="width: 90px; height: 90px; object-fit: cover; border-radius: var(--radius-md); border: 2px solid var(--admin-border); box-shadow: var(--shadow-sm);">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 2. GALLERY IMAGES (DYNAMIC COUNT SELECTOR) -->
+            <!-- ========================================== -->
+            <div class="form-group full" style="background: var(--admin-surface-soft, #fafafa); padding: 18px; border-radius: var(--radius-lg); border: 1px solid var(--admin-border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--admin-border-soft, #eee);">
+                    <div>
+                        <label style="font-size: 14px; font-weight: 700; color: var(--admin-text); display: block; margin-bottom: 4px;">
+                            Section 2: Gallery Images
+                        </label>
+                        <p style="font-size: 12px; color: var(--admin-text-muted); margin: 0;">
+                            Additional angle photos shown in the customer product gallery.
+                        </p>
+                    </div>
+
+                    <!-- How many images dropdown selector -->
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <label for="imageCountSelector" style="font-size: 13px; font-weight: 600; color: var(--admin-text); margin: 0;">
+                            How many images do you want to upload?
+                        </label>
+                        <select id="imageCountSelector" style="padding: 7px 12px; border-radius: var(--radius-md); border: 1px solid var(--admin-border-strong); font-size: 13px; font-weight: 600; background: #ffffff; cursor: pointer;">
+                            <option value="">Select count...</option>
+                            <option value="1">1 Image</option>
+                            <option value="2">2 Images</option>
+                            <option value="3">3 Images</option>
+                            <option value="4">4 Images</option>
+                            <option value="5">5 Images</option>
+                            <option value="6">6 Images</option>
+                            <option value="7">7 Images</option>
+                            <option value="8">8 Images</option>
+                        </select>
+                        <button type="button" id="addImageSlotBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                            + Add Slot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container where dynamic image upload sections appear -->
+                <div id="dynamicGallerySlots" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;"></div>
+
+                <div id="emptyGalleryPrompt" style="padding: 24px; text-align: center; border: 2px dashed var(--admin-border); border-radius: var(--radius-md); color: var(--admin-text-muted); font-size: 13px;">
+                    Select how many images you want to upload from the dropdown above (e.g. 4), or click "+ Add Slot".
+                </div>
+            </div>
+
+            <!-- Active -->
+            <div class="form-group full">
+
+                <label class="checkbox">
+                    <input
+                        name="is_active"
+                        type="checkbox"
+                        checked
+                    >
+                    Active product
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+
+            <a
+                href="{% url 'admin_products' %}"
+                class="btn btn-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+            >
+                Create Product
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ALLOWED_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+
+    function validateFileInput(input) {
+        if (!input.files || input.files.length === 0) return true;
+        const file = input.files[0];
+        if (file.size === 0) {
+            alert("The selected file is empty (0 bytes). Please choose a valid image file.");
+            input.value = "";
+            return false;
+        }
+        if (file.size > MAX_SIZE) {
+            alert(`File "${file.name}" exceeds the 10MB limit (${(file.size / (1024 * 1024)).toFixed(1)} MB). Please select a smaller image.`);
+            input.value = "";
+            return false;
+        }
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        if (!ALLOWED_EXTS.includes(ext)) {
+            alert(`Format "${ext}" is not supported. Please choose a valid JPG, PNG, WEBP, or GIF image.`);
+            input.value = "";
+            return false;
+        }
+        return true;
+    }
+
+    // 1. Preview & validate for Main Primary Image
+    const mainInput = document.getElementById("mainImageInput");
+    const mainPreview = document.getElementById("mainImagePreview");
+    if (mainInput && mainPreview) {
+        mainInput.addEventListener("change", function(e) {
+            if (!validateFileInput(mainInput)) {
+                mainPreview.style.display = "none";
+                return;
+            }
+            const file = e.target.files[0];
+            if (file) {
+                const img = mainPreview.querySelector("img");
+                img.src = URL.createObjectURL(file);
+                mainPreview.style.display = "block";
+            } else {
+                mainPreview.style.display = "none";
+            }
+        });
+    }
+
+    // 2. Dynamic Gallery Images Slots based on count
+    const countSelector = document.getElementById("imageCountSelector");
+    const addSlotBtn = document.getElementById("addImageSlotBtn");
+    const slotsContainer = document.getElementById("dynamicGallerySlots");
+    const emptyPrompt = document.getElementById("emptyGalleryPrompt");
+
+    function createSlot(index) {
+        const slot = document.createElement("div");
+        slot.className = "gallery-upload-card";
+        slot.style.cssText = "background: #ffffff; border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative; box-shadow: var(--shadow-xs);";
+        
+        slot.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="slot-title" style="font-size: 13px; font-weight: 700; color: var(--admin-text);">
+                    Gallery Image #${index}
+                </span>
+                <button type="button" class="remove-slot-btn" title="Remove this image slot" style="background: none; border: none; color: var(--admin-danger, #c0392b); font-size: 15px; font-weight: bold; cursor: pointer; padding: 0 4px;">
+                    ✕
+                </button>
+            </div>
+            <input type="file" name="gallery_images" accept="image/jpeg,image/png,image/webp,image/gif" class="slot-file-input" style="font-size: 12px; width: 100%;">
+            <div class="slot-preview" style="display: none; margin-top: 4px;">
+                <img src="" alt="Preview" style="width: 100%; height: 110px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--admin-border-soft, #eee);">
+            </div>
+        `;
+
+        const fileInput = slot.querySelector(".slot-file-input");
+        const previewBox = slot.querySelector(".slot-preview");
+        const previewImg = previewBox.querySelector("img");
+        const removeBtn = slot.querySelector(".remove-slot-btn");
+
+        fileInput.addEventListener("change", function(e) {
+            if (!validateFileInput(fileInput)) {
+                previewBox.style.display = "none";
+                return;
+            }
+            const file = e.target.files[0];
+            if (file) {
+                previewImg.src = URL.createObjectURL(file);
+                previewBox.style.display = "block";
+            } else {
+                previewBox.style.display = "none";
+            }
+        });
+
+        removeBtn.addEventListener("click", function() {
+            slot.remove();
+            updateSlotNumbers();
+        });
+
+        return slot;
+    }
+
+    function updateSlotNumbers() {
+        const allSlots = slotsContainer.querySelectorAll(".gallery-upload-card");
+        if (allSlots.length === 0) {
+            emptyPrompt.style.display = "block";
+            if (countSelector) countSelector.value = "";
+        } else {
+            emptyPrompt.style.display = "none";
+            allSlots.forEach((slot, i) => {
+                slot.querySelector(".slot-title").textContent = `Gallery Image #${i + 1}`;
+            });
+        }
+    }
+
+    if (countSelector) {
+        countSelector.addEventListener("change", function() {
+            const count = parseInt(countSelector.value, 10);
+            if (!isNaN(count) && count > 0) {
+                slotsContainer.innerHTML = "";
+                for (let i = 1; i <= count; i++) {
+                    slotsContainer.appendChild(createSlot(i));
+                }
+                emptyPrompt.style.display = "none";
+            }
+        });
+    }
+
+    if (addSlotBtn) {
+        addSlotBtn.addEventListener("click", function() {
+            const currentCount = slotsContainer.querySelectorAll(".gallery-upload-card").length;
+            slotsContainer.appendChild(createSlot(currentCount + 1));
+            emptyPrompt.style.display = "none";
+        });
+    }
+
+    // 3. Clean up empty file slots before submission
+    const form = document.querySelector(".admin-form");
+    if (form) {
+        form.addEventListener("submit", function() {
+            const galleryInputs = form.querySelectorAll('input[name="gallery_images"]');
+            galleryInputs.forEach(input => {
+                if (!input.files || input.files.length === 0) {
+                    input.disabled = true; // Prevents transmitting empty file parts
+                }
+            });
+        });
+    }
+});
+</script>
+
+{% endblock %}

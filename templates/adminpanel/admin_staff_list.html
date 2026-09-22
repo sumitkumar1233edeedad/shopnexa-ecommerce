@@ -1,0 +1,74 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Staff Members{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Staff & Permissions</h1>
+        <p>Manage administrative staff accounts and configure granular permissions.</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_staff_add' %}" class="btn btn-primary">+ Add Staff Member</a>
+    </div>
+</section>
+
+<section class="content-card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Permissions</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for staff in staff_members %}
+                <tr>
+                    <td><strong>{{ staff.username }}</strong></td>
+                    <td>{{ staff.email|default:"—" }}</td>
+                    <td>{{ staff.get_full_name|default:staff.username }}</td>
+                    <td>
+                        {% if staff.is_superuser %}
+                            <span class="badge" style="background:#198754; color:#fff; padding:4px 8px; border-radius:4px; font-weight:600;">Superadmin</span>
+                        {% else %}
+                            <span class="badge" style="background:#246bce; color:#fff; padding:4px 8px; border-radius:4px; font-weight:600;">Staff</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if staff.is_superuser %}
+                            <span style="color:#198754; font-weight:500;">All Permissions Granted</span>
+                        {% else %}
+                            <span style="color:#626262;">{{ staff.user_permissions.count }} active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not staff.is_superuser %}
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <a href="{% url 'admin_staff_permissions' staff.id %}" class="btn btn-secondary" style="font-size:12px; padding:4px 10px;">
+                                    Manage Permissions
+                                </a>
+                                <form method="POST" action="{% url 'admin_staff_remove' staff.id %}" onsubmit="return confirm('Revoke staff access for {{ staff.username }}?');" style="margin:0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger" style="font-size:12px; padding:4px 10px;">Revoke</button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <span style="color:#8b8b8b; font-size:12px;">Full Access</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">No staff members found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

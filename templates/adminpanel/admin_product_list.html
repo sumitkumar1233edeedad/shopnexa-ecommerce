@@ -1,0 +1,122 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Products</h1>
+        <p>Manage products in your store.</p>
+    </div>
+
+ 
+{% if perms.products.add_product or user.is_superuser %}
+<a href="{% url 'admin_product_add' %}" class="btn btn-primary">
+    + Add Product
+</a>
+{% endif %}
+ 
+
+</section>
+
+<section class="content-card">
+
+ 
+<form method="get" class="filter-bar">
+    <input
+        type="search"
+        name="search"
+        value="{{ search|default:'' }}"
+        placeholder="Search products..."
+    >
+
+    <button class="btn btn-secondary" type="submit">
+        Search
+    </button>
+</form>
+
+<div class="table-wrapper">
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for product in products %}
+
+            <tr>
+
+                <td>
+                    <strong>{{ product.name }}</strong>
+                </td>
+
+                <td>
+                    {% for category in product.cat.all %}
+                        {{ category.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        No category
+                    {% endfor %}
+                </td>
+
+                <td>
+                    {% if product.is_active %}
+                        <span class="badge success">
+                            Active
+                        </span>
+                    {% else %}
+                        <span class="badge">
+                            Inactive
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td class="actions">
+
+                    <a href="{% url 'admin_product_detail' product.slug %}">
+                        View
+                    </a>
+
+                    {% if perms.products.change_product or user.is_superuser %}
+                    <a href="{% url 'admin_product_edit' product.slug %}">
+                        Edit
+                    </a>
+                    {% endif %}
+
+                    {% if perms.products.delete_product or user.is_superuser %}
+                    <a href="{% url 'admin_product_delete' product.slug %}">
+                        Delete
+                    </a>
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="4" class="empty-state">
+                    No products found.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+ 
+</section>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+<!-- <a
+                                  href="{% url 'add_to_cart' product.id %}"
+                                  class="product-cart-button"
+                              >
+                                  Add to Cart
+                              </a> -->
+
+
+                              <div class="product-card-footer">
+                    <div>
+                        {% if item.product.price %}
+                        <span class="product-price">₹{{ item.product.price }}</span>
+                        {% else %}
+                        <span class="product-price-range">Price unavailable</span>
+                        {% endif %}
+                    </div>
+
+                    {% with v=item.product.default_variant %}
+                    {% if v and v.is_in_stock %}
+                    <form method="POST" action="{% url 'add_to_cart' v.slug %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn-add-cart">
+                            Move to Cart
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'product_detail' item.product.slug %}" class="btn-add-cart">
+                        View
+                    </a>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+
+
+
+                <a href="{% url 'my_orders' %}" class="profile-menu-item">
+            <span>📦</span>
+            <div>
+                <strong>MY ORDERS</strong>
+            </div>
+        </a>

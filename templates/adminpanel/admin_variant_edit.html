@@ -1,0 +1,112 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Edit Variant{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Edit Variant</h1>
+        <p>Update variant information for {{ variant.sku }}.</p>
+    </div>
+</section>
+
+<section class="content-card">
+
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+            <!-- Product -->
+            <div class="form-group">
+                <label>Product</label>
+                <select name="product" required>
+                    {% for product in products %}
+                        <option value="{{ product.id }}" {% if variant.product_id == product.id %}selected{% endif %}>
+                            {{ product.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- SKU -->
+            <div class="form-group">
+                <label>SKU</label>
+                <input name="sku" value="{{ variant.sku }}" placeholder="e.g. PROD-BLK-128" required>
+            </div>
+
+            <!-- Size / Specification -->
+            <div class="form-group">
+                <label>Size / Specification</label>
+                <input name="size" value="{{ variant.size|default:'' }}" placeholder="e.g. 128GB, 256GB, M, L">
+            </div>
+
+            <!-- Color -->
+            <div class="form-group">
+                <label>Color</label>
+                <select name="color">
+                    <option value="">No Color (None)</option>
+                    {% for color in colors %}
+                        <option value="{{ color.id }}" {% if variant.color_id == color.id %}selected{% endif %}>
+                            {{ color.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Price -->
+            <div class="form-group">
+                <label>Price (₹)</label>
+                <input
+                    name="price"
+                    value="{{ variant.price }}"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    required
+                >
+            </div>
+
+            <!-- Stock Quantity -->
+            <div class="form-group">
+                <label>Stock Quantity</label>
+                <input
+                    name="stock"
+                    value="{{ variant.stock.quantity|default:0 }}"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    required
+                >
+            </div>
+
+            <!-- Active Status -->
+            <div class="form-group full">
+                <label class="checkbox">
+                    <input
+                        name="is_active"
+                        type="checkbox"
+                        {% if variant.is_active %}checked{% endif %}
+                    >
+                    Active variant (available for purchase)
+                </label>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'admin_variants' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                Save Changes
+            </button>
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}

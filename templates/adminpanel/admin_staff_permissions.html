@@ -1,0 +1,59 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Manage Permissions - {{ staff_user.username }}{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Manage Permissions: <span style="color:#246bce;">{{ staff_user.username }}</span></h1>
+        <p>Grant or revoke specific access rights for this staff account.</p>
+    </div>
+    <div>
+        <a href="{% url 'admin_staff_list' %}" class="btn btn-secondary">Back to Staff List</a>
+    </div>
+</section>
+
+<section class="content-card" style="max-width: 960px;">
+    <form method="POST">
+        {% csrf_token %}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--admin-border);">
+            <span style="color: var(--admin-text-secondary); font-size: 14px;">
+                Select permissions below. Changes will take effect immediately upon saving.
+            </span>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="toggleAll(true)">Select All</button>
+                <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="toggleAll(false)">Deselect All</button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 24px;">
+            {% for perm in permissions %}
+            <label style="display: flex; align-items: flex-start; gap: 10px; background: var(--admin-surface-soft); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border); cursor: pointer; transition: var(--transition);">
+                <input type="checkbox" name="permissions" value="{{ perm.id }}" style="margin-top: 3px;" class="perm-checkbox"
+                    {% if perm.id in user_perm_ids %}checked{% endif %}>
+                <div>
+                    <span style="display: inline-block; font-size: 10px; text-transform: uppercase; background: var(--admin-surface-muted); color: var(--admin-text-secondary); padding: 2px 6px; border-radius: var(--radius-xs); font-weight: 700; margin-bottom: 4px;">
+                        {{ perm.content_type.app_label }}
+                    </span>
+                    <div style="font-size: 13px; font-weight: 500; color: var(--admin-text); line-height: 1.3;">
+                        {{ perm.name }}
+                    </div>
+                    <code style="font-size: 11px; color: var(--admin-text-muted);">{{ perm.codename }}</code>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; gap: 12px; padding-top: 16px; border-top: 1px solid var(--admin-border);">
+            <button type="submit" class="btn btn-primary">Save Permissions</button>
+            <a href="{% url 'admin_staff_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</section>
+
+<script>
+function toggleAll(checked) {
+    document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = checked);
+}
+</script>
+{% endblock %}

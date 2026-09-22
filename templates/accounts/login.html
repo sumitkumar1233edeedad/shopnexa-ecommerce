@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In | STORE AI{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    
+    <!-- Auth Header -->
+    <div class="auth-header">
+      <div class="brand-logo" style="justify-content: center; margin-bottom: 16px;">
+        <img src="{% static 'images/logo.png' %}" alt="STORE AI" class="brand-logo-img" style="height: 52px; width: auto;">
+      </div>
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-subtitle">Sign in to access your orders, wishlist, and recommendations</p>
+    </div>
+
+    <form method="POST" action="{% url 'login' %}">
+      {% csrf_token %}
+      {% if request.GET.next %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {% endif %}
+
+      <div class="form-group">
+        <label class="form-label">Username or Email</label>
+        <input 
+          type="text" 
+          name="username" 
+          class="form-control" 
+          placeholder="Enter your username or email" 
+          required 
+          autofocus
+        >
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label class="form-label" style="margin-bottom: 0;">Password</label>
+          <a href="{% url 'forgot_password' %}" style="font-size: 12px; color: var(--accent); font-weight: 600;">
+            Forgot Password?
+          </a>
+        </div>
+        <input 
+          type="password" 
+          name="password" 
+          class="form-control" 
+          placeholder="••••••••" 
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 24px;">
+        <span>Sign In</span>
+        <span>→</span>
+      </button>
+    </form>
+
+    <!-- Footer Switch Link -->
+    <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-light); font-size: 14px; color: var(--text-muted);">
+      Don't have an account? 
+      <a href="{% url 'register' %}" style="color: var(--accent); font-weight: 700;">Create Account</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

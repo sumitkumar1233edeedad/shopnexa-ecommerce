@@ -1,0 +1,98 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Coupon Configuration{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Coupon Configuration</h1>
+        <p>Manage store-wide promotional settings, customer weekly usage allowances, and coupon policies.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'admin_coupons' %}" class="btn btn-secondary">
+            &larr; Back to Coupons
+        </a>
+        <a href="{% url 'admin_coupon_add' %}" class="btn btn-primary">
+            + Add Coupon
+        </a>
+    </div>
+</section>
+
+<!-- Stats Grid -->
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Global Weekly Limit</span>
+        <strong>{{ config.weekly_user_limit }} / customer</strong>
+    </article>
+    <article class="stat-card">
+        <span>Active Coupons</span>
+        <strong>{{ active_coupons_count|default:0 }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Total Redemptions</span>
+        <strong>{{ total_usages_count|default:0 }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Total Discount Granted</span>
+        <strong>₹{{ total_discount_given|floatformat:2 }}</strong>
+    </article>
+</section>
+
+<!-- Configuration Settings Form -->
+<section class="content-card" style="max-width: 720px;">
+    <div class="section-heading">
+        <h2>Weekly Customer Allowance Policy</h2>
+    </div>
+
+    <form method="post" class="admin-form">
+        {% csrf_token %}
+
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+
+            <div class="form-group">
+                <label for="id_weekly_user_limit">
+                    Global Weekly Coupon Limit Per Registered Customer *
+                </label>
+                <input
+                    id="id_weekly_user_limit"
+                    name="weekly_user_limit"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value="{{ config.weekly_user_limit|default:'5' }}"
+                    required
+                    style="font-size: 16px; font-weight: 600; max-width: 220px;"
+                >
+                <small style="color: var(--admin-text-muted); font-size: 12px; display: block; margin-top: 6px; line-height: 1.5;">
+                    The default maximum number of successful coupon redemptions allowed per customer in a single calendar week (Monday 00:00:00 to Sunday 23:59:59).
+                </small>
+            </div>
+
+            <!-- Policy Explanation Card -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 10px 0 20px;">
+                <h4 style="margin: 0 0 8px; font-size: 14px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                    ℹ️ How Weekly Limits Work:
+                </h4>
+                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.6;">
+                    <li>Every customer starts with this weekly allowance on <strong>Monday at 00:00:00</strong>.</li>
+                    <li>Individual coupons can also override this setting if configured with their own specific weekly limit.</li>
+                    <li>Once a customer reaches their weekly limit, further coupon applications are blocked with an informative message until the next Monday.</li>
+                    <li>Last modified: <strong>{{ config.updated_at|date:"M d, Y H:i:s" }}</strong></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="form-actions" style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary">
+                Save Configuration
+            </button>
+            <a href="{% url 'admin_coupons' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

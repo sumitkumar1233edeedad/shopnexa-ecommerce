@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block title %}Update Profile — STORE AI{% endblock %}
+{% block content %}
+
+<div class="account_update_page">
+
+    <div class="account_update_container">
+
+        <div class="account_update_header">
+            <h1 class="account_update_title">
+                Update Profile
+            </h1>
+
+            <p class="account_update_subtitle">
+                Update your account information
+            </p>
+        </div>
+
+
+        {% if messages %}
+            <div class="account_messages">
+                {% for message in messages %}
+                    <p class="account_message">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="account_update_form"
+        >
+
+            {% csrf_token %}
+
+
+            <!-- Profile Picture -->
+
+            <div class="account_profile_picture_group">
+
+                <div class="account_profile_picture_preview">
+
+                    {% if profile.profile_picture %}
+                        <img
+                            src="{{ profile.profile_picture.url }}"
+                            class="account_profile_image"
+                            alt="Profile Picture"
+                        >
+                    {% else %}
+                        <span class="account_profile_initial">
+                            {{ user.username|first|upper }}
+                        </span>
+                    {% endif %}
+
+                </div>
+
+
+                <label class="account_form_label">
+                    Profile Picture
+                </label>
+
+                <input
+                    type="file"
+                    name="profile_picture"
+                    class="account_form_file"
+                    accept="image/*"
+                >
+
+            </div>
+
+
+            <!-- First & Last Name Row -->
+            <div class="account_form_row">
+                <div class="account_form_group">
+                    <label class="account_form_label">
+                        First Name
+                    </label>
+                    <input
+                        type="text"
+                        name="first_name"
+                        value="{{ user.first_name|default:'' }}"
+                        class="account_form_input"
+                        placeholder="Enter first name"
+                    >
+                </div>
+
+                <div class="account_form_group">
+                    <label class="account_form_label">
+                        Last Name
+                    </label>
+                    <input
+                        type="text"
+                        name="last_name"
+                        value="{{ user.last_name|default:'' }}"
+                        class="account_form_input"
+                        placeholder="Enter last name"
+                    >
+                </div>
+            </div>
+
+
+            <!-- Username -->
+
+            <div class="account_form_group">
+
+                <label class="account_form_label">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    name="username"
+                    value="{{ user.username }}"
+                    class="account_form_input"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Email -->
+
+            <div class="account_form_group">
+
+                <label class="account_form_label">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ user.email }}"
+                    class="account_form_input"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Phone -->
+
+            <div class="account_form_group">
+
+                <label class="account_form_label">
+                    Phone
+                </label>
+
+                <input
+                    type="tel"
+                    name="phone"
+                    value="{{ profile.phone|default:'' }}"
+                    class="account_form_input"
+                >
+
+            </div>
+
+
+            <!-- Buttons -->
+
+            <div class="account_update_actions">
+
+                <button
+                    type="submit"
+                    class="account_update_button"
+                >
+                    Save Changes
+                </button>
+
+
+                <a
+                    href="{% url 'profile' profile.slug %}"
+                    class="account_cancel_button"
+                >
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+ 
+{% endblock %}

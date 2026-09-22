@@ -1,0 +1,173 @@
+{% extends "adminpanel/admin_base.html" %}
+
+{% block title %}Coupons{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div>
+        <h1>Coupons</h1>
+        <p>Manage discount coupons, usage limits, and weekly user allowances.</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        {% if perms.coupons.change_couponconfiguration or user.is_superuser %}
+        <a href="{% url 'admin_coupon_configuration' %}" class="btn btn-secondary">
+            ⚙ Coupon Settings
+        </a>
+        {% endif %}
+        {% if perms.coupons.add_coupon or user.is_superuser %}
+        <a href="{% url 'admin_coupon_add' %}" class="btn btn-primary">
+            + Add Coupon
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Total Coupons</span>
+        <strong>{{ total_coupons|default:0 }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Active Coupons</span>
+        <strong>{{ active_coupons|default:0 }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Total Usages</span>
+        <strong>{{ total_usages|default:0 }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Total Discount Given</span>
+        <strong>₹{{ total_discount_given|floatformat:2 }}</strong>
+    </article>
+</section>
+
+<section class="content-card">
+
+    <form method="get" class="filter-bar">
+        <input
+            type="search"
+            name="search"
+            value="{{ search|default:'' }}"
+            placeholder="Search code or description..."
+        >
+
+        <select name="status">
+            <option value="">All Statuses</option>
+            <option value="active" {% if status == 'active' %}selected{% endif %}>Active (Valid Now)</option>
+            <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
+            <option value="upcoming" {% if status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+
+        <select name="discount_type">
+            <option value="">All Types</option>
+            <option value="percentage" {% if discount_type == 'percentage' %}selected{% endif %}>Percentage (%)</option>
+            <option value="fixed" {% if discount_type == 'fixed' %}selected{% endif %}>Fixed (₹)</option>
+        </select>
+
+        <button class="btn btn-secondary" type="submit">
+            Filter
+        </button>
+
+        {% if search or status or discount_type %}
+            <a href="{% url 'admin_coupons' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Discount</th>
+                    <th>Min Order</th>
+                    <th>Validity Period</th>
+                    <th>Total Used</th>
+                    <th>Weekly Limit</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for coupon in coupons %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin_coupon_detail' coupon.slug %}">
+                            <strong>{{ coupon.code }}</strong>
+                        </a>
+                        {% if coupon.description %}
+                            <div style="font-size: 12px; color: var(--admin-text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ coupon.description }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if coupon.discount_type == 'percentage' %}
+                            {{ coupon.discount_value|floatformat:0 }}%
+                            {% if coupon.maximum_discount_amount %}
+                                <div style="font-size: 11px; color: var(--admin-text-muted);">Max ₹{{ coupon.maximum_discount_amount|floatformat:0 }}</div>
+                            {% endif %}
+                        {% else %}
+                            ₹{{ coupon.discount_value|floatformat:0 }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        ₹{{ coupon.minimum_order_amount|floatformat:0 }}
+                    </td>
+                    <td>
+                        <div style="font-size: 12px;">
+                            {{ coupon.valid_from|date:"M d, Y" }} – {{ coupon.valid_until|date:"M d, Y" }}
+                        </div>
+                    </td>
+                    <td>
+                        <strong>{{ coupon.used_count }}</strong>
+                        {% if coupon.usage_limit %}
+                            <span style="font-size: 12px; color: var(--admin-text-muted);">/ {{ coupon.usage_limit }}</span>
+                        {% else %}
+                            <span style="font-size: 12px; color: var(--admin-text-muted);">/ ∞</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge info">{{ coupon.weekly_user_limit }}/wk</span>
+                    </td>
+                    <td>
+                        {% if not coupon.is_active %}
+                            <span class="badge">Inactive</span>
+                        {% elif coupon.is_expired %}
+                            <span class="badge danger">Expired</span>
+                        {% elif coupon.is_upcoming %}
+                            <span class="badge warning">Upcoming</span>
+                        {% elif coupon.usage_limit and coupon.used_count >= coupon.usage_limit %}
+                            <span class="badge danger">Limit Reached</span>
+                        {% else %}
+                            <span class="badge success">Active</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions">
+                        <a href="{% url 'admin_coupon_detail' coupon.slug %}">View</a>
+                        {% if perms.coupons.change_coupon or user.is_superuser %}
+                        <a href="{% url 'admin_coupon_edit' coupon.slug %}">Edit</a>
+                        <a href="{% url 'admin_coupon_toggle' coupon.slug %}">
+                            {% if coupon.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </a>
+                        {% endif %}
+                        {% if perms.coupons.delete_coupon or user.is_superuser %}
+                        <a href="{% url 'admin_coupon_delete' coupon.slug %}">Delete</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        No coupons found. Click "+ Add Coupon" to create your first promotion.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+{% endblock %}

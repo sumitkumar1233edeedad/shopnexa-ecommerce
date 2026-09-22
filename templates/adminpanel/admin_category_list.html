@@ -1,0 +1,48 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1>Categories</h1>
+        <p>Manage product categories.</p>
+    </div>
+    {% if perms.products.add_category or user.is_superuser %}
+    <a href="{% url 'admin_category_add' %}" class="btn btn-primary">+ Add Category</a>
+    {% endif %}
+</section>
+
+<section class="content-card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr>
+                    <td>{{ category.name }}</td>
+                    <td>{% if category.is_active %}Active{% else %}Inactive{% endif %}</td>
+                    <td class="actions">
+                        {% if perms.products.change_category or user.is_superuser %}
+                        <a href="{% url 'admin_category_edit' category.slug %}">Edit</a>
+                        {% endif %}
+                        {% if perms.products.delete_category or user.is_superuser %}
+                        <a href="{% url 'admin_category_delete' category.id %}">Delete</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="empty-state">No categories found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
