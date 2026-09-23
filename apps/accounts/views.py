@@ -244,6 +244,8 @@ def home(request):
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect("admin_dashboard")
         return redirect("home")
 
     if request.method == "POST":
@@ -261,9 +263,20 @@ def login_view(request):
 
         # 2. If user exists, check password
         if user_obj and user_obj.check_password(password):
-            # Check if account is not active (unverified email)
-            if not user_obj.is_active or not getattr(user_obj, "is_email_verified", True) or not getattr(user_obj, "is_activated", True):
+            # Check if email is NOT verified yet
+            is_verified = (
+                user_obj.is_active
+                and getattr(user_obj, "is_email_verified", True)
+                and getattr(user_obj, "is_activated", True)
+            )
+
+            if not is_verified:
                 try:
+                    # Preserve intended destination in session
+                    next_url = request.GET.get("next") or request.POST.get("next")
+                    if next_url and not next_url.startswith("/login"):
+                        request.session["next_url"] = next_url
+
                     generate_and_send_otp(user_obj, purpose="registration")
                     request.session["otp_user_id"] = user_obj.id
                     messages.warning(
@@ -275,7 +288,7 @@ def login_view(request):
                     messages.error(request, f"Failed to send verification code: {e}")
                     return render(request, "accounts/login.html")
 
-            # Authenticate and login active user
+            # Authenticate and login active verified user
             user = authenticate(
                 request,
                 username=user_obj.username,
@@ -291,7 +304,7 @@ def login_view(request):
                 if next_url and next_url.strip() and not next_url.startswith("/login"):
                     return redirect(next_url)
 
-                if user.is_staff:
+                if user.is_staff or user.is_superuser:
                     return redirect("admin_dashboard")
 
                 return redirect("home")
@@ -433,6 +446,16 @@ def verify_otp_view(request):
             del request.session["otp_user_id"]
 
         messages.success(request, "🎉 Email verified successfully! Welcome to AI Store.")
+
+        # Check for preserved next_url in session
+        next_url = request.session.pop("next_url", None)
+        if next_url and next_url.strip() and not next_url.startswith("/login"):
+            return redirect(next_url)
+
+        # Redirect according to role/permissions
+        if user.is_staff or user.is_superuser:
+            return redirect("admin_dashboard")
+
         return redirect("home")
 
     return render(request, "accounts/verify_otp.html", {"email": user.email})

@@ -2,116 +2,405 @@
 {% block title %}Add Staff Member{% endblock %}
 
 {% block content %}
-<section class="page-header">
+<!-- Page Header -->
+<section class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
     <div>
-        <h1>Add Staff Member</h1>
-        <p>Grant administrative access to an existing user or create a new staff account.</p>
+        <h1 style="font-size: 26px; font-weight: 700; color: var(--admin-text, #171717); margin: 0 0 6px 0;">Add Staff Member</h1>
+        <p style="color: var(--admin-text-secondary, #626262); font-size: 14px; margin: 0;">Promote an existing customer account or provision a brand new staff login with custom permissions.</p>
     </div>
     <div>
-        <a href="{% url 'admin_staff_list' %}" class="btn btn-secondary">Back to Staff List</a>
+        <a href="{% url 'admin_staff_list' %}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: 13px; font-weight: 600;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to Staff List
+        </a>
     </div>
 </section>
 
-<section class="content-card" style="max-width: 960px;">
-    <form method="POST">
-        {% csrf_token %}
+<form method="POST" id="addStaffForm" style="max-width: 1060px;">
+    {% csrf_token %}
 
-        <!-- Tab Selector: Existing User vs New Account -->
-        <div style="display: flex; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--admin-border);">
-            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
-                <input type="radio" name="action_type" value="existing" checked onchange="switchMode('existing')">
-                Promote Existing Customer / User
+    <!-- Mode Selector Card -->
+    <section class="content-card" style="margin-bottom: 24px; padding: 24px;">
+        <div style="margin-bottom: 16px;">
+            <h2 style="font-size: 16px; font-weight: 700; margin: 0 0 4px 0; color: var(--admin-text);">1. Choose Account Provisioning Method</h2>
+            <p style="font-size: 13px; color: var(--admin-text-secondary); margin: 0;">Select whether to upgrade an existing customer account or register new credentials.</p>
+        </div>
+
+        <!-- Segmented Mode Control -->
+        <div class="staff-mode-segmented">
+            <label class="staff-mode-btn active" id="btn-mode-existing" onclick="setMode('existing')">
+                <input type="radio" name="action_type" value="existing" checked style="display: none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+                <span>Promote Existing Customer</span>
             </label>
-            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; margin-left: 20px;">
-                <input type="radio" name="action_type" value="new" onchange="switchMode('new')">
-                Create New Staff Account
+            <label class="staff-mode-btn" id="btn-mode-new" onclick="setMode('new')">
+                <input type="radio" name="action_type" value="new" style="display: none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                <span>Create New Staff Account</span>
             </label>
         </div>
 
-        <!-- Section 1: Choose Existing User -->
-        <div id="section-existing" style="margin-bottom: 24px;">
-            <label style="display: block; font-weight: 600; margin-bottom: 8px;">Select User to Promote to Staff</label>
-            <select name="user_id" style="width: 100%; max-width: 480px; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border); background: var(--admin-surface); font-size: 14px;">
-                <option value="">-- Choose a user --</option>
+        <!-- Section A: Existing User Dropdown -->
+        <div id="section-existing" style="padding: 16px; background: var(--admin-surface-soft); border: 1px solid var(--admin-border); border-radius: var(--radius-md);">
+            <label style="display: block; font-weight: 700; font-size: 13.5px; margin-bottom: 8px; color: var(--admin-text);">
+                Select Existing User *
+            </label>
+            <select name="user_id" style="width: 100%; max-width: 520px; padding: 11px 14px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border-strong); background: var(--admin-surface); font-size: 14px; color: var(--admin-text);">
+                <option value="">-- Choose a user to elevate to staff --</option>
                 {% for u in non_staff_users %}
-                    <option value="{{ u.id }}">{{ u.username }} ({{ u.email|default:"No email" }})</option>
+                    <option value="{{ u.id }}">{{ u.username }} &lt;{{ u.email|default:"No email registered" }}&gt; {% if u.get_full_name %}({{ u.get_full_name }}){% endif %}</option>
                 {% empty %}
-                    <option value="" disabled>No regular users available</option>
+                    <option value="" disabled>No regular users available to promote</option>
                 {% endfor %}
             </select>
+            <p style="font-size: 12px; color: var(--admin-text-secondary); margin: 8px 0 0 0;">
+                The chosen customer will retain their order history and acquire staff administrative panel access.
+            </p>
         </div>
 
-        <!-- Section 2: Create New User (Hidden by default) -->
-        <div id="section-new" style="display: none; margin-bottom: 24px;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+        <!-- Section B: New User Fields -->
+        <div id="section-new" style="display: none; padding: 16px; background: var(--admin-surface-soft); border: 1px solid var(--admin-border); border-radius: var(--radius-md);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
                 <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Username *</label>
-                    <input type="text" name="username" placeholder="e.g. manager_rahul" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border);">
+                    <label style="display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--admin-text);">
+                        Username <span style="color: var(--admin-danger);">*</span>
+                    </label>
+                    <input type="text" name="username" placeholder="e.g. staff_alex" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border-strong); background: #ffffff; font-size: 13.5px;">
                 </div>
                 <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Email Address *</label>
-                    <input type="email" name="email" placeholder="e.g. staff@gmail.com" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border);">
+                    <label style="display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--admin-text);">
+                        Email Address <span style="color: var(--admin-danger);">*</span>
+                    </label>
+                    <input type="email" name="email" placeholder="e.g. alex@mystore.com" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border-strong); background: #ffffff; font-size: 13.5px;">
                 </div>
                 <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px;">Password *</label>
-                    <input type="password" name="password" placeholder="Temporary password" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border);">
+                    <label style="display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--admin-text);">
+                        Temporary Password <span style="color: var(--admin-danger);">*</span>
+                    </label>
+                    <input type="password" name="password" placeholder="Min. 8 characters" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border-strong); background: #ffffff; font-size: 13.5px;">
                 </div>
+            </div>
+            <p style="font-size: 12px; color: var(--admin-text-secondary); margin: 8px 0 0 0;">
+                Credentials will be created immediately with administrative staff status enabled.
+            </p>
+        </div>
+    </section>
+
+    <!-- Permissions Matrix Card -->
+    <section class="content-card" style="margin-bottom: 24px; padding: 24px;">
+        <div style="margin-bottom: 16px;">
+            <h2 style="font-size: 16px; font-weight: 700; margin: 0 0 4px 0; color: var(--admin-text);">2. Assign Granular Permissions</h2>
+            <p style="font-size: 13px; color: var(--admin-text-secondary); margin: 0;">Select modules and operations this staff account is authorized to manage.</p>
+        </div>
+
+        <!-- Sticky Toolbar: Live Counter & Instant Search -->
+        <div class="perm-matrix-toolbar">
+            <div class="perm-counter-pill">
+                <span>Permissions Selected:</span>
+                <span class="badge-count" id="permCounterBadge">0 / {{ permissions|length }}</span>
+            </div>
+
+            <div class="perm-search-box">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" id="permSearchInput" placeholder="Filter permission name or codename...">
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;" onclick="toggleAll(true)">Select All</button>
+                <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;" onclick="toggleAll(false)">Deselect All</button>
             </div>
         </div>
 
-        <!-- Section 3: Select Permissions -->
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--admin-border);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <div>
-                    <h3 style="margin: 0; font-size: 16px;">Assign Permissions</h3>
-                    <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--admin-text-secondary);">Select the modules and actions this staff member can access.</p>
+        <!-- Group 1: Product Catalog -->
+        <!-- Group 1: Products & Inventory Variants -->
+        <div class="perm-module-card mod-blue" data-module="products">
+            <div class="perm-module-header">
+                <div class="perm-module-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    <span>Products & Inventory Variants</span>
+                    <span class="perm-module-badge">products & variants</span>
                 </div>
-                <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="toggleAll(true)">Select All</button>
-                    <button type="button" class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;" onclick="toggleAll(false)">Deselect All</button>
-                </div>
+                <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="toggleModule('products')">Toggle Module</button>
             </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 24px;">
+            <div class="perm-grid">
                 {% for perm in permissions %}
-                <label style="display: flex; align-items: flex-start; gap: 10px; background: var(--admin-surface-soft); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--admin-border); cursor: pointer;">
-                    <input type="checkbox" name="permissions" value="{{ perm.id }}" style="margin-top: 3px;" class="perm-checkbox">
-                    <div>
-                        <span style="display: inline-block; font-size: 10px; text-transform: uppercase; background: var(--admin-surface-muted); color: var(--admin-text-secondary); padding: 2px 6px; border-radius: var(--radius-xs); font-weight: 700; margin-bottom: 4px;">
-                            {{ perm.content_type.app_label }}
-                        </span>
-                        <div style="font-size: 13px; font-weight: 500; color: var(--admin-text); line-height: 1.3;">
-                            {{ perm.name }}
+                    {% if 'product' in perm.codename %}
+                    <label class="perm-check-card" data-name="{{ perm.name|lower }}" data-code="{{ perm.codename|lower }}">
+                        <input type="checkbox" name="permissions" value="{{ perm.id }}" class="perm-checkbox">
+                        <div class="perm-card-content">
+                            <div class="perm-card-title">{{ perm.name }}</div>
+                            <code class="perm-card-code">{{ perm.codename }}</code>
                         </div>
-                        <code style="font-size: 11px; color: var(--admin-text-muted);">{{ perm.codename }}</code>
-                    </div>
-                </label>
+                    </label>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
 
-        <div style="display: flex; gap: 12px; padding-top: 16px; border-top: 1px solid var(--admin-border);">
-            <button type="submit" class="btn btn-primary">Save & Grant Access</button>
-            <a href="{% url 'admin_staff_list' %}" class="btn btn-secondary">Cancel</a>
+        <!-- Group 2: Categories & Colors -->
+        <div class="perm-module-card mod-cyan" data-module="taxonomies">
+            <div class="perm-module-header">
+                <div class="perm-module-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m9.17 14.83-4.24 4.24"></path></svg>
+                    <span>Categories & Product Colors</span>
+                    <span class="perm-module-badge" style="color: #0891b2; background: #ecfeff;">categories & colors</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="toggleModule('taxonomies')">Toggle Module</button>
+            </div>
+            <div class="perm-grid">
+                {% for perm in permissions %}
+                    {% if 'category' in perm.codename or 'color' in perm.codename %}
+                    <label class="perm-check-card" data-name="{{ perm.name|lower }}" data-code="{{ perm.codename|lower }}">
+                        <input type="checkbox" name="permissions" value="{{ perm.id }}" class="perm-checkbox">
+                        <div class="perm-card-content">
+                            <div class="perm-card-title">{{ perm.name }}</div>
+                            <code class="perm-card-code">{{ perm.codename }}</code>
+                        </div>
+                    </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
-    </form>
-</section>
+
+        <!-- Group 3: Orders & Fulfillment -->
+        <div class="perm-module-card mod-green" data-module="orders">
+            <div class="perm-module-header">
+                <div class="perm-module-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    <span>Orders & Fulfillment</span>
+                    <span class="perm-module-badge" style="color: #059669; background: #ecfdf5;">orders</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="toggleModule('orders')">Toggle Module</button>
+            </div>
+            <div class="perm-grid">
+                {% for perm in permissions %}
+                    {% if perm.content_type.app_label == 'order' %}
+                    <label class="perm-check-card" data-name="{{ perm.name|lower }}" data-code="{{ perm.codename|lower }}">
+                        <input type="checkbox" name="permissions" value="{{ perm.id }}" class="perm-checkbox">
+                        <div class="perm-card-content">
+                            <div class="perm-card-title">{{ perm.name }}</div>
+                            <code class="perm-card-code">{{ perm.codename }}</code>
+                        </div>
+                    </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Group 4: Coupons & Promotions -->
+        <div class="perm-module-card mod-amber" data-module="coupons">
+            <div class="perm-module-header">
+                <div class="perm-module-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    <span>Coupons, Discounts & Configuration</span>
+                    <span class="perm-module-badge" style="color: #d97706; background: #fffbeb;">coupons</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="toggleModule('coupons')">Toggle Module</button>
+            </div>
+            <div class="perm-grid">
+                {% for perm in permissions %}
+                    {% if perm.content_type.app_label == 'coupons' %}
+                    <label class="perm-check-card" data-name="{{ perm.name|lower }}" data-code="{{ perm.codename|lower }}">
+                        <input type="checkbox" name="permissions" value="{{ perm.id }}" class="perm-checkbox">
+                        <div class="perm-card-content">
+                            <div class="perm-card-title">{{ perm.name }}</div>
+                            <code class="perm-card-code">{{ perm.codename }}</code>
+                        </div>
+                    </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Group 5: Customer Reviews -->
+        <div class="perm-module-card mod-rose" data-module="reviews">
+            <div class="perm-module-header">
+                <div class="perm-module-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <span>Customer Ratings & Reviews</span>
+                    <span class="perm-module-badge" style="color: #e11d48; background: #fff1f2;">reviews</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="toggleModule('reviews')">Toggle Module</button>
+            </div>
+            <div class="perm-grid">
+                {% for perm in permissions %}
+                    {% if 'review' in perm.codename %}
+                    <label class="perm-check-card" data-name="{{ perm.name|lower }}" data-code="{{ perm.codename|lower }}">
+                        <input type="checkbox" name="permissions" value="{{ perm.id }}" class="perm-checkbox">
+                        <div class="perm-card-content">
+                            <div class="perm-card-title">{{ perm.name }}</div>
+                            <code class="perm-card-code">{{ perm.codename }}</code>
+                        </div>
+                    </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Group 6: Accounts & Users -->
+        <div class="perm-module-card mod-purple" data-module="accounts">
+            <div class="perm-module-header">
+                <div class="perm-module-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Accounts & Customer Directory</span>
+                    <span class="perm-module-badge" style="color: #7c3aed; background: #f5f3ff;">accounts</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="toggleModule('accounts')">Toggle Module</button>
+            </div>
+            <div class="perm-grid">
+                {% for perm in permissions %}
+                    {% if perm.content_type.app_label == 'accounts' %}
+                    <label class="perm-check-card" data-name="{{ perm.name|lower }}" data-code="{{ perm.codename|lower }}">
+                        <input type="checkbox" name="permissions" value="{{ perm.id }}" class="perm-checkbox">
+                        <div class="perm-card-content">
+                            <div class="perm-card-title">{{ perm.name }}</div>
+                            <code class="perm-card-code">{{ perm.codename }}</code>
+                        </div>
+                    </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Group 7: Chat Support & Live Messaging -->
+        <div class="perm-module-card mod-indigo" data-module="chat">
+            <div class="perm-module-header">
+                <div class="perm-module-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>Real-Time Support Chat & Messages</span>
+                    <span class="perm-module-badge" style="color: #4f46e5; background: #eef2ff;">chat support</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="toggleModule('chat')">Toggle Module</button>
+            </div>
+            <div class="perm-grid">
+                {% for perm in permissions %}
+                    {% if perm.content_type.app_label == 'chat' %}
+                    <label class="perm-check-card" data-name="{{ perm.name|lower }}" data-code="{{ perm.codename|lower }}">
+                        <input type="checkbox" name="permissions" value="{{ perm.id }}" class="perm-checkbox">
+                        <div class="perm-card-content">
+                            <div class="perm-card-title">{{ perm.name }}</div>
+                            <code class="perm-card-code">{{ perm.codename }}</code>
+                        </div>
+                    </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Form Submit Footer -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); margin-bottom: 40px;">
+        <div style="font-size: 13px; color: var(--admin-text-secondary);">
+            Review details carefully before granting administrative privileges.
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="{% url 'admin_staff_list' %}" class="btn btn-secondary" style="padding: 10px 18px; font-size: 13px; font-weight: 600;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Save & Grant Access
+            </button>
+        </div>
+    </div>
+</form>
 
 <script>
-function switchMode(mode) {
+function setMode(mode) {
     const existingSec = document.getElementById('section-existing');
     const newSec = document.getElementById('section-new');
+    const btnExisting = document.getElementById('btn-mode-existing');
+    const btnNew = document.getElementById('btn-mode-new');
+
+    const radioExisting = btnExisting.querySelector('input[type="radio"]');
+    const radioNew = btnNew.querySelector('input[type="radio"]');
+
     if (mode === 'existing') {
         existingSec.style.display = 'block';
         newSec.style.display = 'none';
+        btnExisting.classList.add('active');
+        btnNew.classList.remove('active');
+        radioExisting.checked = true;
+        radioNew.checked = false;
     } else {
         existingSec.style.display = 'none';
         newSec.style.display = 'block';
+        btnExisting.classList.remove('active');
+        btnNew.classList.add('active');
+        radioExisting.checked = false;
+        radioNew.checked = true;
+    }
+}
+
+function updateCounter() {
+    const total = document.querySelectorAll('.perm-checkbox').length;
+    const checked = document.querySelectorAll('.perm-checkbox:checked').length;
+    const badge = document.getElementById('permCounterBadge');
+    if (badge) {
+        badge.textContent = `${checked} / ${total}`;
+    }
+}
+
+function syncCardState(checkbox) {
+    const card = checkbox.closest('.perm-check-card');
+    if (card) {
+        if (checkbox.checked) {
+            card.classList.add('is-checked');
+        } else {
+            card.classList.remove('is-checked');
+        }
     }
 }
 
 function toggleAll(checked) {
-    document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = checked);
+    document.querySelectorAll('.perm-checkbox').forEach(cb => {
+        cb.checked = checked;
+        syncCardState(cb);
+    });
+    updateCounter();
 }
+
+function toggleModule(moduleName) {
+    const moduleCard = document.querySelector(`.perm-module-card[data-module="${moduleName}"]`);
+    if (!moduleCard) return;
+    const checkboxes = moduleCard.querySelectorAll('.perm-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+        syncCardState(cb);
+    });
+    updateCounter();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Checkbox change handlers
+    document.querySelectorAll('.perm-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            syncCardState(this);
+            updateCounter();
+        });
+    });
+
+    // Instant Search
+    const searchInput = document.getElementById('permSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            document.querySelectorAll('.perm-check-card').forEach(card => {
+                const name = card.dataset.name || '';
+                const code = card.dataset.code || '';
+                const matches = !query || name.includes(query) || code.includes(query);
+                card.style.display = matches ? '' : 'none';
+            });
+
+            // Hide module cards if all items inside are hidden
+            document.querySelectorAll('.perm-module-card').forEach(mod => {
+                const visibleCards = mod.querySelectorAll('.perm-check-card:not([style*="display: none"])');
+                mod.style.display = visibleCards.length > 0 ? '' : 'none';
+            });
+        });
+    }
+
+    updateCounter();
+});
 </script>
 {% endblock %}
+

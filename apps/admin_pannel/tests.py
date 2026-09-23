@@ -289,3 +289,49 @@ class AdminCouponManagementTests(TestCase):
         self.assertTrue(Coupon.objects.filter(slug=slug).exists())
         self.assertFalse(self.coupon.is_active)
         self.assertContains(response, "has historical order usage records and cannot be permanently deleted")
+
+
+class AdminUserListTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+        self.superuser = User.objects.create_superuser(
+            username="admin_super",
+            email="super@example.com",
+            password="superpassword123",
+        )
+
+        self.staff_user = User.objects.create_user(
+            username="staff_member",
+            email="staff@example.com",
+            password="staffpassword123",
+            is_staff=True,
+        )
+
+        self.regular_user = User.objects.create_user(
+            username="regular_cust",
+            email="cust@example.com",
+            password="custpassword123",
+            is_staff=False,
+        )
+
+    def test_anonymous_redirected(self):
+        response = self.client.get(reverse("admin_users"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("login", response.url)
+
+    def test_non_staff_redirected_to_home(self):
+        self.client.login(username="regular_cust", password="custpassword123")
+        response = self.client.get(reverse("admin_users"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("home"))
+
+    def test_superuser_can_access_user_list(self):
+        self.client.login(username="admin_super", password="superpassword123")
+        response = self.client.get(reverse("admin_users"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "adminpanel/admin_user_list.html")
+        self.assertContains(response, "User Management")
+        self.assertContains(response, "admin_super")
+        self.assertContains(response, "regular_cust")
+

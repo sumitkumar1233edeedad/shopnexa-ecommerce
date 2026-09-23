@@ -1,0 +1,342 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+    <div>
+        <h1 style="font-size: 26px; font-weight: 700; color: var(--admin-text, #171717); margin: 0 0 6px 0;">User Management</h1>
+        <p style="color: var(--admin-text-secondary, #626262); font-size: 14px; margin: 0;">Comprehensive directory of customers, staff operators, and administrative accounts.</p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        {% if user.is_superuser %}
+            <a href="{% url 'admin_staff_add' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: 13px; font-weight: 600;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                + Add Staff Member
+            </a>
+        {% endif %}
+        <a href="{% url 'admin_customers' %}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: 13px; font-weight: 600;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Customers View
+        </a>
+    </div>
+</section>
+
+<!-- KPI Metrics Overview Cards -->
+<div class="admin-metrics-grid">
+    <div class="admin-metric-card">
+        <div class="admin-metric-info">
+            <span class="admin-metric-label">Total Users</span>
+            <div class="admin-metric-value">{{ total_users|default:"0" }}</div>
+            <span class="admin-metric-subtext">All registered accounts</span>
+        </div>
+        <div class="admin-metric-icon slate">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-info">
+            <span class="admin-metric-label">Active Accounts</span>
+            <div class="admin-metric-value" style="color: #15803d;">{{ total_active|default:"0" }}</div>
+            <span class="admin-metric-subtext">Verified & enabled logins</span>
+        </div>
+        <div class="admin-metric-icon green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-info">
+            <span class="admin-metric-label">Staff & Admins</span>
+            <div class="admin-metric-value" style="color: #2563eb;">{{ total_staff|default:"0" }}</div>
+            <span class="admin-metric-subtext">Operations team</span>
+        </div>
+        <div class="admin-metric-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+    </div>
+    <div class="admin-metric-card">
+        <div class="admin-metric-info">
+            <span class="admin-metric-label">Customers</span>
+            <div class="admin-metric-value">{{ total_customers|default:"0" }}</div>
+            <span class="admin-metric-subtext">Standard buyers</span>
+        </div>
+        <div class="admin-metric-icon amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<section class="admin-filter-card">
+    <form method="get" class="admin-filter-row" id="userFilterForm">
+        <div class="admin-search-box">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="search" name="search" id="userSearchInput" value="{{ search|default:'' }}" placeholder="Search by username, email, full name..." class="admin-search-input">
+        </div>
+        
+        <select name="role" id="userRoleSelect" class="admin-select-filter">
+            <option value="">All Roles</option>
+            <option value="customer" {% if role == 'customer' %}selected{% endif %}>Customer</option>
+            <option value="staff" {% if role == 'staff' %}selected{% endif %}>Staff</option>
+            <option value="superuser" {% if role == 'superuser' %}selected{% endif %}>Superadmin</option>
+        </select>
+
+        <select name="status" id="userStatusSelect" class="admin-select-filter">
+            <option value="">All Status</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary" style="padding: 10px 18px; font-weight: 600; font-size: 13.5px;">Filter</button>
+        {% if search or role or status_filter %}
+            <a href="{% url 'admin_users' %}" class="btn btn-secondary" style="padding: 10px 14px; font-size: 13.5px; color: var(--admin-danger); text-decoration: none;">Reset</a>
+        {% endif %}
+    </form>
+</section>
+
+<!-- Users Data Table Card -->
+<section class="content-card" style="padding: 0; overflow: hidden;">
+    <div style="padding: 18px 20px 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--admin-border); flex-wrap: wrap; gap: 10px;">
+        <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--admin-text); display: flex; align-items: center; gap: 8px;">
+            <span>User Accounts</span>
+            <span id="user-count-chip" style="font-size: 11.5px; font-weight: 600; background: var(--admin-surface-muted); color: var(--admin-text-secondary); padding: 2px 8px; border-radius: 999px;">
+                {{ filtered_count }} matched
+            </span>
+        </h2>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="usersTable">
+            <thead>
+                <tr>
+                    <th style="width: 280px;">User Account</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Email Status</th>
+                    <th>Date Joined</th>
+                    <th>Last Login</th>
+                    <th style="text-align: right; width: 180px;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                {% for u in users %}
+                <tr class="user-row" data-username="{{ u.username|lower }}" data-email="{{ u.email|default:''|lower }}" data-name="{{ u.get_full_name|default:''|lower }}">
+                    <td>
+                        <div class="user-meta-cell">
+                            <div class="user-avatar-initial {% if u.is_superuser %}super{% elif u.is_staff %}staff{% else %}cust{% endif %}">
+                                {{ u.username|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <div class="user-meta-title">{{ u.username }}</div>
+                                <div class="user-meta-subtitle">{{ u.email|default:"No email registered" }}</div>
+                                {% if u.first_name or u.last_name %}
+                                    <div class="user-meta-fullname">{{ u.first_name }} {{ u.last_name }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if u.is_superuser %}
+                            <span class="role-badge super">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                Superadmin
+                            </span>
+                        {% elif u.is_staff %}
+                            <span class="role-badge staff">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                Staff
+                            </span>
+                        {% else %}
+                            <span class="role-badge customer">Customer</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="status-pill active">
+                                <span class="pulse-dot green"></span>
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="status-pill inactive">
+                                <span class="pulse-dot red"></span>
+                                Inactive
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_email_verified %}
+                            <span class="verification-pill verified">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Verified
+                            </span>
+                        {% else %}
+                            <span class="verification-pill pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 13px; color: var(--admin-text-secondary);">
+                        {{ u.date_joined|date:"M d, Y" }}
+                    </td>
+                    <td style="font-size: 12.5px; color: var(--admin-text-muted);">
+                        {% if u.last_login %}
+                            {{ u.last_login|date:"M d, Y H:i" }}
+                        {% else %}
+                            Never logged in
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                            {% if u.is_staff and user.is_superuser %}
+                                <a href="{% url 'admin_staff_permissions' u.profile.slug|default:u.username %}" class="btn btn-secondary" style="font-size: 12px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                    Permissions
+                                </a>
+                            {% endif %}
+                            {% if not u.is_staff and u.profile %}
+                                <a href="{% url 'admin_customer_detail' u.profile.slug|default:u.username %}" class="btn btn-secondary" style="font-size: 12px; padding: 5px 10px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    Profile
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state" style="padding: 48px 20px; text-align: center;">
+                        <div style="font-size: 36px; margin-bottom: 8px;">🔍</div>
+                        <div style="font-size: 16px; font-weight: 600; color: var(--admin-text); margin-bottom: 4px;">No users found</div>
+                        <p style="font-size: 13px; color: var(--admin-text-secondary); margin: 0 0 16px 0;">No accounts matched your search and filter criteria.</p>
+                        {% if search or role or status_filter %}
+                            <a href="{% url 'admin_users' %}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">Reset Filter Options</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paging / Pagination Component -->
+    <div class="admin-pagination" id="userPagination">
+        <div class="pagination-info">
+            Showing <strong id="user-page-start">1</strong> to <strong id="user-page-end">15</strong> of <strong id="user-total-count">{{ filtered_count }}</strong> users
+        </div>
+        <div class="pagination-actions">
+            <div class="pagination-size-select">
+                <span>Rows per page:</span>
+                <select id="userPerPageSelect">
+                    <option value="10">10</option>
+                    <option value="15" selected>15</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+            <div class="pagination-controls" id="userPaginationControls">
+                <!-- Dynamically populated page buttons -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Paging & Client Pagination Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const rows = Array.from(document.querySelectorAll('.user-row'));
+    const paginationControls = document.getElementById('userPaginationControls');
+    const perPageSelect = document.getElementById('userPerPageSelect');
+    const pageStartEl = document.getElementById('user-page-start');
+    const pageEndEl = document.getElementById('user-page-end');
+    const totalCountEl = document.getElementById('user-total-count');
+
+    let currentPage = 1;
+    let perPage = parseInt(perPageSelect ? perPageSelect.value : 15, 10);
+
+    function renderPagination() {
+        const total = rows.length;
+        if (total === 0) {
+            if (pageStartEl) pageStartEl.textContent = 0;
+            if (pageEndEl) pageEndEl.textContent = 0;
+            if (totalCountEl) totalCountEl.textContent = 0;
+            if (paginationControls) paginationControls.innerHTML = '';
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        rows.forEach(r => r.style.display = 'none');
+
+        const startIndex = (currentPage - 1) * perPage;
+        const endIndex = Math.min(startIndex + perPage, total);
+
+        for (let i = startIndex; i < endIndex; i++) {
+            if (rows[i]) {
+                rows[i].style.display = '';
+            }
+        }
+
+        if (pageStartEl) pageStartEl.textContent = startIndex + 1;
+        if (pageEndEl) pageEndEl.textContent = endIndex;
+        if (totalCountEl) totalCountEl.textContent = total;
+
+        renderButtons(totalPages);
+    }
+
+    function renderButtons(totalPages) {
+        if (!paginationControls) return;
+        paginationControls.innerHTML = '';
+
+        // Prev Button
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+        prevBtn.innerHTML = '&lsaquo;';
+        prevBtn.title = 'Previous Page';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderPagination(); } };
+        paginationControls.appendChild(prevBtn);
+
+        // Page Numbers with smart ellipsis
+        for (let i = 1; i <= totalPages; i++) {
+            if (totalPages > 7) {
+                if (i !== 1 && i !== totalPages && Math.abs(i - currentPage) > 1) {
+                    if (i === 2 || i === totalPages - 1) {
+                        const ell = document.createElement('span');
+                        ell.className = 'page-ellipsis';
+                        ell.textContent = '…';
+                        paginationControls.appendChild(ell);
+                    }
+                    continue;
+                }
+            }
+
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => { currentPage = i; renderPagination(); };
+            paginationControls.appendChild(pageBtn);
+        }
+
+        // Next Button
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextBtn.innerHTML = '&rsaquo;';
+        nextBtn.title = 'Next Page';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderPagination(); } };
+        paginationControls.appendChild(nextBtn);
+    }
+
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function () {
+            perPage = parseInt(this.value, 10);
+            currentPage = 1;
+            renderPagination();
+        });
+    }
+
+    renderPagination();
+});
+</script>
+{% endblock %}
+

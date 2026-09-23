@@ -36,3 +36,29 @@ def staff_perm_required(perm_name):
 
         return _wrapped
     return decorator
+
+
+def superuser_required(view_func):
+    """
+    Decorator for views strictly restricted to superusers (e.g. staff management).
+    Ensures user is authenticated, is a staff member, and is a superuser.
+    """
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(f"/login/?next={request.path}")
+
+        if not request.user.is_staff:
+            messages.error(request, "Access denied. Staff access required.")
+            return redirect("home")
+
+        if not request.user.is_superuser:
+            messages.error(
+                request,
+                "Access denied. Only superadmins can access this page."
+            )
+            return redirect("admin_dashboard")
+
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped

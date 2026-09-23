@@ -190,3 +190,121 @@ class StaffAddSerializer(serializers.Serializer):
                 raise serializers.ValidationError({"permissions": "One or more permission IDs are invalid."})
 
         return attrs
+
+
+# ==============================================================================
+# ADMIN USER CRUD SERIALIZERS
+# ==============================================================================
+class AdminUserSerializer(serializers.ModelSerializer):
+    """
+    Detailed serializer for admin user representation.
+    """
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "is_staff",
+            "is_superuser",
+            "is_active",
+            "is_email_verified",
+            "is_activated",
+            "date_joined",
+            "last_login",
+        ]
+        read_only_fields = ["id", "date_joined", "last_login"]
+
+
+class AdminUserCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating a new user via admin API.
+    """
+    password = serializers.CharField(write_only=True, required=True, min_length=6)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+            "is_staff",
+            "is_superuser",
+            "is_active",
+            "is_email_verified",
+            "is_activated",
+        ]
+
+    def validate_username(self, value):
+        username = value.strip()
+        if User.objects.filter(username__iexact=username).exists():
+            raise serializers.ValidationError(f"Username '{username}' is already taken.")
+        return username
+
+    def validate_email(self, value):
+        email = value.strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError(f"Email '{email}' is already in use.")
+        return email
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        is_superuser = validated_data.get("is_superuser", False)
+        if is_superuser:
+            validated_data["is_staff"] = True
+            user = User.objects.create_superuser(password=password, **validated_data)
+        else:
+            user = User.objects.create_user(password=password, **validated_data)
+        return user
+
+
+class AdminUserUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating an existing user via admin API.
+    Supports partial updates and optional password reset.
+    """
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True, min_length=6)
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+            "is_staff",
+            "is_superuser",
+            "is_active",
+            "is_email_verified",
+            "is_activated",
+        ]
+
+    def validate_username(self, value):
+        username = value.strip()
+        if User.objects.filter(username__iexact=username).exclude(id=self.instance.id).exists():
+            raise serializers.ValidationError(f"Username '{username}' is already taken.")
+        return username
+
+    def validate_email(self, value):
+        email = value.strip().lower()
+        if User.objects.filter(email__iexact=email).exclude(id=self.instance.id).exists():
+            raise serializers.ValidationError(f"Email '{email}' is already in use.")
+        return email
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+        if password:
+            instance.set_password(password)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
+

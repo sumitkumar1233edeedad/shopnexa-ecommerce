@@ -86,7 +86,10 @@ urlpatterns = [
         name="admin_order_status"
     ),
 
-   
+    # Users Management
+    path("users/", views.user_list, name="admin_users"),
+    path("users/list/", views.user_list, name="admin_user_list"),
+
     path("customers/", views.customer_list, name="admin_customers"),
     path(
         "customers/<slug:slug>/",
@@ -129,7 +132,7 @@ urlpatterns = [
     # Staff & Permissions Management
     path("staff/", views.staff_list, name="admin_staff_list"),
     path("staff/add/", views.staff_add, name="admin_staff_add"),
-    path("staff/<int:user_id>/permissions/", views.staff_permissions, name="admin_staff_permissions"),
-    path("staff/<int:user_id>/remove/", views.staff_remove, name="admin_staff_remove"),
+    path("staff/<slug:slug>/permissions/", views.staff_permissions, name="admin_staff_permissions"),
+    path("staff/<slug:slug>/remove/", views.staff_remove, name="admin_staff_remove"),
 ]
 

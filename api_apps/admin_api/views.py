@@ -2,6 +2,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,6 +10,9 @@ from rest_framework.views import APIView
 
 from .permissions import IsSuperAdminUser
 from .serializers import (
+    AdminUserCreateSerializer,
+    AdminUserSerializer,
+    AdminUserUpdateSerializer,
     NonStaffUserSerializer,
     PermissionSerializer,
     StaffAddSerializer,
@@ -340,3 +344,147 @@ class NonStaffCandidatesAPIView(APIView):
             "count": non_staff_users.count(),
             "candidates": serializer.data
         }, status=status.HTTP_200_OK)
+
+
+
+# ==============================================================================
+# 7. USER MANAGEMENT CRUD API VIEWS
+# ==============================================================================
+class UserListAPI(APIView):
+    """
+    GET  /api/admin/users/ -> List all users with search and filtering
+    POST /api/admin/users/ -> Create a new user (customer, staff, or superadmin)
+    """
+    permission_classes = [IsAuthenticated, IsSuperAdminUser]
+
+    def get(self, request):
+        users = User.objects.all().order_by("-date_joined")
+
+        search = request.GET.get("search", "").strip()
+        role = request.GET.get("role", "").strip()
+        is_active = request.GET.get("is_active", "").strip().lower()
+
+        if search:
+            users = users.filter(
+                Q(username__icontains=search)
+                | Q(email__icontains=search)
+                | Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+            )
+
+        if role == "superuser":
+            users = users.filter(is_superuser=True)
+        elif role == "staff":
+            users = users.filter(is_staff=True, is_superuser=False)
+        elif role == "customer":
+            users = users.filter(is_staff=False)
+
+        if is_active in ("true", "1"):
+            users = users.filter(is_active=True)
+        elif is_active in ("false", "0"):
+            users = users.filter(is_active=False)
+
+        serializer = AdminUserSerializer(users, many=True)
+        return Response({
+            "success": True,
+            "count": users.count(),
+            "users": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = AdminUserCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                "success": False,
+                "message": "Validation failed.",
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        user = serializer.save()
+        return Response({
+            "success": True,
+            "message": f"User '{user.username}' created successfully.",
+            "user": AdminUserSerializer(user).data
+        }, status=status.HTTP_201_CREATED)
+
+
+class UserDetailAPI(APIView):
+    """
+    GET    /api/admin/users/<user_id>/ -> Retrieve user details
+    PUT    /api/admin/users/<user_id>/ -> Update user details (full)
+    PATCH  /api/admin/users/<user_id>/ -> Update user details (partial)
+    DELETE /api/admin/users/<user_id>/ -> Delete user
+    """
+    permission_classes = [IsAuthenticated, IsSuperAdminUser]
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        serializer = AdminUserSerializer(user)
+        return Response({
+            "success": True,
+            "user": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request, user_id):
+        return self._update(request, user_id, partial=False)
+
+    def patch(self, request, user_id):
+        return self._update(request, user_id, partial=True)
+
+    def _update(self, request, user_id, partial=False):
+        user = get_object_or_404(User, id=user_id)
+
+        # Safeguard: cannot remove own superuser status or deactivate self
+        if request.user.id == user.id:
+            if "is_superuser" in request.data and not request.data.get("is_superuser"):
+                return Response({
+                    "success": False,
+                    "message": "You cannot remove your own superuser status."
+                }, status=status.HTTP_400_BAD_REQUEST)
+            if "is_active" in request.data and not request.data.get("is_active"):
+                return Response({
+                    "success": False,
+                    "message": "You cannot deactivate your own account."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = AdminUserUpdateSerializer(user, data=request.data, partial=partial)
+        if not serializer.is_valid():
+            return Response({
+                "success": False,
+                "message": "Validation failed.",
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_user = serializer.save()
+        return Response({
+            "success": True,
+            "message": f"User '{updated_user.username}' updated successfully.",
+            "user": AdminUserSerializer(updated_user).data
+        }, status=status.HTTP_200_OK)
+
+    def delete(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+
+        # Safeguard: cannot delete self
+        if request.user.id == user.id:
+            return Response({
+                "success": False,
+                "message": "You cannot delete your own account."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Safeguard: cannot delete superadmin unless superuser
+        if user.is_superuser and not request.user.is_superuser:
+            return Response({
+                "success": False,
+                "message": "Superadmin accounts can only be deleted by superadmins."
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        username = user.username
+        user.delete()
+        return Response({
+            "success": True,
+            "message": f"User '{username}' deleted successfully."
+        }, status=status.HTTP_200_OK)
+
+
+        

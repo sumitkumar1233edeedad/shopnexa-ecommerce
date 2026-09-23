@@ -35,6 +35,15 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    @property
+    def slug(self):
+        try:
+            if hasattr(self, 'profile') and self.profile and self.profile.slug:
+                return self.profile.slug
+        except Exception:
+            pass
+        return self.username
+
 
 class DateTime(models.Model):
     is_active = models.BooleanField(default=True)

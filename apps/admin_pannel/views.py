@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from apps.accounts.models import Profile
 from apps.products.validators import validate_uploaded_image
-from .decorators import staff_perm_required
+from .decorators import staff_perm_required, superuser_required
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -23,6 +23,56 @@ from apps.products.models import *
 from apps.order.models import *
 from apps.coupons.models import Coupon, CouponUsage, CouponConfiguration
 
+STORE_PERMISSIONS = [
+    # --- Catalog: Products ---
+    "products.view_product",
+    "products.add_product",
+    "products.change_product",
+    "products.delete_product",
+
+    # --- Catalog: Categories ---
+    "products.view_category",
+    "products.add_category",
+    "products.change_category",
+    "products.delete_category",
+
+    # --- Catalog: Colors ---
+    "products.view_color",
+    "products.add_color",
+    "products.change_color",
+    "products.delete_color",
+
+    # --- Catalog: Variants ---
+    "products.view_productvariant",
+    "products.add_productvariant",
+    "products.change_productvariant",
+    "products.delete_productvariant",
+
+    # --- Reviews ---
+    "products.view_review",
+    "products.delete_review",
+
+    # --- Orders ---
+    "order.view_order",
+    "order.change_order",
+
+    # --- Customers / Users ---
+    "accounts.view_customuser",
+
+    # --- Coupons & Discounts ---
+    "coupons.view_coupon",
+    "coupons.add_coupon",
+    "coupons.change_coupon",
+    "coupons.delete_coupon",
+    "coupons.view_couponconfiguration",
+    "coupons.change_couponconfiguration",
+
+    # --- Chat Support ---
+    "chat.view_conversation",       
+    "chat.add_message",               
+    "chat.change_conversation",     
+    "chat.delete_conversation",    
+]
 
 
 def admin_required(request):
@@ -37,6 +87,10 @@ def admin_required(request):
         return False
 
     return True
+
+
+
+
 
 
 def admin_login(request):
@@ -55,6 +109,8 @@ def admin_logout(request):
     logout(request)
 
     return redirect("login")
+
+
 
 
 @login_required(login_url="login")
@@ -980,6 +1036,8 @@ def update_order_status(request, slug):
     )
 
 
+
+
 @staff_perm_required("accounts.view_customuser")
 def customer_list(request):
 
@@ -1681,38 +1739,46 @@ def coupon_broadcast(request, slug):
 # STAFF & PERMISSION MANAGEMENT VIEWS
 # =============================================================================
 
-@login_required(login_url="login")
+@superuser_required
 def staff_list(request):
     """
     List all staff members and their active permissions.
     Only superadmins can access this view.
     """
-    if not request.user.is_superuser:
-        messages.error(request, "Access denied. Only superadmins can manage staff permissions.")
-        return redirect("admin_dashboard")
-
-    staff_members = User.objects.filter(is_staff=True).prefetch_related("user_permissions").order_by("username")
+    staff_members = (
+        User.objects.filter(is_staff=True)
+        .select_related("profile")
+        .prefetch_related("user_permissions")
+        .order_by("username")
+    )
     return render(request, "adminpanel/admin_staff_list.html", {
         "staff_members": staff_members
     })
 
 
-@login_required(login_url="login")
-def staff_permissions(request, user_id):
+@superuser_required
+def staff_permissions(request, slug):
     """
     Configure specific permissions for a staff member.
     Only superadmins can access this view.
     """
-    if not request.user.is_superuser:
-        messages.error(request, "Access denied. Only superadmins can manage staff permissions.")
-        return redirect("admin_dashboard")
+    staff_user = User.objects.filter(is_staff=True).filter(
+        Q(profile__slug=slug) | Q(username=slug)
+    ).first()
 
-    staff_user = get_object_or_404(User, id=user_id, is_staff=True)
+    if not staff_user and slug.isdigit():
+        staff_user = User.objects.filter(id=slug, is_staff=True).first()
 
-    store_apps = ["products", "coupons", "order", "chat", "accounts"]
+    if not staff_user:
+        raise Http404("Staff member not found")
+
+    q_filter = Q()
+    for item in STORE_PERMISSIONS:
+        app, codename = item.split(".")
+        q_filter |= Q(content_type__app_label=app, codename=codename)
     permissions = (
         Permission.objects
-        .filter(content_type__app_label__in=store_apps)
+        .filter(q_filter)
         .select_related("content_type")
         .order_by("content_type__app_label", "name")
     )
@@ -1732,22 +1798,23 @@ def staff_permissions(request, user_id):
     })
 
 
-@login_required(login_url="login")
+@superuser_required
 def staff_add(request):
     """
     Add a new staff member or promote an existing user to staff,
     and grant initial permissions.
     """
-    if not request.user.is_superuser:
-        messages.error(request, "Access denied. Only superadmins can add staff members.")
-        return redirect("admin_dashboard")
-
     non_staff_users = User.objects.filter(is_staff=False).order_by("username")
 
-    store_apps = ["products", "coupons", "order", "chat", "accounts"]
+     
+    q_filter = Q()
+    for item in STORE_PERMISSIONS:
+        app, codename = item.split(".")
+        q_filter |= Q(content_type__app_label=app, codename=codename)
+        
     permissions = (
         Permission.objects
-        .filter(content_type__app_label__in=store_apps)
+        .filter(q_filter)
         .select_related("content_type")
         .order_by("content_type__app_label", "name")
     )
@@ -1765,6 +1832,7 @@ def staff_add(request):
             user = get_object_or_404(User, id=user_id)
             user.is_staff = True
             user.save(update_fields=["is_staff"])
+            Profile.objects.get_or_create(name=user)
             user.user_permissions.set(selected_perm_ids)
             messages.success(request, f"User '{user.username}' is now a staff member with {len(selected_perm_ids)} permissions.")
             return redirect("admin_staff_list")
@@ -1792,6 +1860,7 @@ def staff_add(request):
                 password=password,
                 is_staff=True
             )
+            Profile.objects.get_or_create(name=user)
             user.user_permissions.set(selected_perm_ids)
             messages.success(request, f"Staff member '{user.username}' created successfully with {len(selected_perm_ids)} permissions.")
             return redirect("admin_staff_list")
@@ -1802,16 +1871,21 @@ def staff_add(request):
     })
 
 
-@login_required(login_url="login")
-def staff_remove(request, user_id):
+@superuser_required
+def staff_remove(request, slug):
     """
     Revoke staff status and permissions from a staff user.
     """
-    if not request.user.is_superuser:
-        messages.error(request, "Access denied.")
-        return redirect("admin_dashboard")
+    staff_user = User.objects.filter(is_staff=True).filter(
+        Q(profile__slug=slug) | Q(username=slug)
+    ).first()
 
-    staff_user = get_object_or_404(User, id=user_id, is_staff=True)
+    if not staff_user and slug.isdigit():
+        staff_user = User.objects.filter(id=slug, is_staff=True).first()
+
+    if not staff_user:
+        raise Http404("Staff member not found")
+
     if staff_user.is_superuser:
         messages.error(request, "Superadmin accounts cannot be demoted.")
         return redirect("admin_staff_list")
@@ -1825,4 +1899,62 @@ def staff_remove(request, user_id):
 
     return redirect("admin_staff_list")
 
+
+
+@staff_perm_required("accounts.view_customuser")
+def user_list(request):
+    """
+    List all users (customers, staff, and superadmins) for management.
+    Supports search across username, email, first and last names,
+    as well as filtering by role (all, customer, staff, superuser)
+    and status (active, inactive).
+    """
+    users = User.objects.all().select_related("profile").order_by("-date_joined")
+
+    search = request.GET.get("search", "").strip()
+    role = request.GET.get("role", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+
+    if search:
+        users = users.filter(
+            Q(username__icontains=search)
+            | Q(email__icontains=search)
+            | Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+        )
+
+    if role == "superuser":
+        users = users.filter(is_superuser=True)
+    elif role == "staff":
+        users = users.filter(is_staff=True, is_superuser=False)
+    elif role == "customer":
+        users = users.filter(is_staff=False)
+
+    if status_filter == "active":
+        users = users.filter(is_active=True)
+    elif status_filter == "inactive":
+        users = users.filter(is_active=False)
+
+    total_users = User.objects.count()
+    total_staff = User.objects.filter(is_staff=True).count()
+    total_customers = User.objects.filter(is_staff=False).count()
+    total_active = User.objects.filter(is_active=True).count()
+
+    context = {
+        "users": users,
+        "filtered_count": users.count(),
+        "total_users": total_users,
+        "total_staff": total_staff,
+        "total_customers": total_customers,
+        "total_active": total_active,
+        "search": search,
+        "role": role,
+        "status_filter": status_filter,
+    }
+
+    return render(
+        request,
+        "adminpanel/admin_user_list.html",
+        context,
+    )
 

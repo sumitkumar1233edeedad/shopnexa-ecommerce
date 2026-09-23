@@ -1,0 +1,11 @@
+{% extends "adminpanel/admin_base.html" %}
+{% block title %}403 Access Denied{% endblock %}
+
+{% block content %}
+<section class="content-card" style="text-align: center; padding: 60px 20px; max-width: 600px; margin: 40px auto; background: #fff; border-radius: 10px; border: 1px solid #e6e7e9;">
+    <h1 style="font-size: 54px; color: #c0392b; margin-bottom: 12px; font-weight: 800;">403</h1>
+    <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #171717;">Access Denied</h2>
+    <p style="color: #626262; font-size: 15px; margin-bottom: 24px;">You do not have the required permissions to view this resource.</p>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600; text-decoration: none;">Return to Dashboard</a>
+</section>
+{% endblock %}

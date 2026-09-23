@@ -224,3 +224,103 @@ class AdminApiStaffPermissionTests(APITestCase):
         self.assertIn("permissions", response.data)
         self.assertIn("grouped_permissions", response.data)
         self.assertIn("store_apps", response.data)
+
+    # =========================================================================
+    # USER MANAGEMENT CRUD ENDPOINTS
+    # =========================================================================
+    def test_list_users_as_superuser(self):
+        """Superadmin can list all users with metadata."""
+        self.client.force_authenticate(user=self.superadmin)
+        url = reverse("api_admin_user_list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertGreaterEqual(response.data["count"], 3)
+        usernames = [u["username"] for u in response.data["users"]]
+        self.assertIn(self.superadmin.username, usernames)
+        self.assertIn(self.staff_user.username, usernames)
+        self.assertIn(self.regular_user.username, usernames)
+
+    def test_list_users_search_filter(self):
+        """Users list can be filtered by search query."""
+        self.client.force_authenticate(user=self.superadmin)
+        url = reverse("api_admin_user_list")
+        response = self.client.get(url, {"search": "regular"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames = [u["username"] for u in response.data["users"]]
+        self.assertIn("regular_customer", usernames)
+        self.assertNotIn("superadmin_tester", usernames)
+
+    def test_create_user_api(self):
+        """Superadmin can create a new user via API."""
+        self.client.force_authenticate(user=self.superadmin)
+        url = reverse("api_admin_user_list")
+        payload = {
+            "username": "new_created_user",
+            "email": "newuser@example.com",
+            "password": "strongpassword123",
+            "first_name": "Test",
+            "last_name": "User",
+            "is_active": True,
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["user"]["username"], "new_created_user")
+        self.assertTrue(User.objects.filter(username="new_created_user").exists())
+
+    def test_retrieve_user_api(self):
+        """Superadmin can retrieve single user details."""
+        self.client.force_authenticate(user=self.superadmin)
+        url = reverse("api_admin_user_detail", kwargs={"user_id": self.regular_user.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["user"]["id"], self.regular_user.id)
+        self.assertEqual(response.data["user"]["username"], self.regular_user.username)
+
+    def test_update_user_api(self):
+        """Superadmin can update user fields."""
+        self.client.force_authenticate(user=self.superadmin)
+        url = reverse("api_admin_user_detail", kwargs={"user_id": self.regular_user.id})
+        payload = {
+            "first_name": "UpdatedName",
+            "last_name": "UpdatedLastName",
+        }
+        response = self.client.patch(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["user"]["first_name"], "UpdatedName")
+        self.regular_user.refresh_from_db()
+        self.assertEqual(self.regular_user.first_name, "UpdatedName")
+
+    def test_delete_user_api(self):
+        """Superadmin can delete a user."""
+        target_user = User.objects.create_user(
+            username="to_be_deleted",
+            email="delete_me@example.com",
+            password="testpassword123"
+        )
+        self.client.force_authenticate(user=self.superadmin)
+        url = reverse("api_admin_user_detail", kwargs={"user_id": target_user.id})
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertFalse(User.objects.filter(username="to_be_deleted").exists())
+
+    def test_cannot_delete_self_api(self):
+        """Superadmin cannot delete their own account."""
+        self.client.force_authenticate(user=self.superadmin)
+        url = reverse("api_admin_user_detail", kwargs={"user_id": self.superadmin.id})
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("cannot delete your own account", response.data["message"])
+        self.assertTrue(User.objects.filter(id=self.superadmin.id).exists())
+

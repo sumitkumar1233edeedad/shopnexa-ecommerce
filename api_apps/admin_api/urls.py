@@ -7,6 +7,8 @@ from .views import (
     StaffListAPIView,
     StaffPermissionsAPIView,
     StaffRemoveAPIView,
+    UserDetailAPI,
+    UserListAPI,
 )
 
 urlpatterns = [
@@ -33,4 +35,10 @@ urlpatterns = [
     # 6. Available store permissions catalog
     path("admin/permissions/", AvailablePermissionsAPIView.as_view(), name="api_admin_permissions"),
     path("permissions/", AvailablePermissionsAPIView.as_view(), name="api_permissions"),
+
+    # 7. User management CRUD
+    path("admin/users/", UserListAPI.as_view(), name="api_admin_user_list"),
+    path("users/", UserListAPI.as_view(), name="user-list"),
+    path("admin/users/<int:user_id>/", UserDetailAPI.as_view(), name="api_admin_user_detail"),
+    path("users/<int:user_id>/", UserDetailAPI.as_view(), name="user-detail"),
 ]
