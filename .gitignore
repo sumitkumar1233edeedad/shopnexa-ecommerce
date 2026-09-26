@@ -5,29 +5,29 @@ __pycache__/
 *.so
 .Python
 
-# Virtual Environment
+# Virtual environments
 myvenv/
 venv/
 env/
 ENV/
 
-# Environment files & Secrets
+# Environment files & secrets
 .env
 .env.local
 .env.*.local
 !.env.example
 
-# SQLite and local database
+# SQLite / local databases
 *.sqlite3
 *.sqlite3.*
 *.backup
 db.sqlite3
 scratch/
 
-# Media / Uploaded files
+# Media / uploaded files
 media/
 
-# IDEs and editors
+# IDEs / editors
 .vscode/
 .idea/
 *.swp
@@ -37,9 +37,10 @@ media/
 Thumbs.db
 .DS_Store
 
-.dockerignore
-docker-compose.yml
-Dockerfile
+# Local / temporary files
+*.log
+*.tmp
+
+# Project-specific local files
 postgres_backup.sqlite3
-RUNINING.md
 datadump_postgrass.json
