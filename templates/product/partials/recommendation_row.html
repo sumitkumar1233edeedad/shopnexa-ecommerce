@@ -1,0 +1,24 @@
+{% if products %}
+<section class="recommendation-section">
+  <div class="recommendation-header">
+    <div>
+      <span class="recommendation-badge">Curated Recommendations</span>
+      <h2 class="recommendation-title">{{ section_title }}</h2>
+      {% if section_subtitle %}
+        <p class="recommendation-subtitle">{{ section_subtitle }}</p>
+      {% endif %}
+    </div>
+    <div class="recommendation-nav">
+      <button type="button" class="recommendation-nav-btn prev" aria-label="Scroll left in {{ section_title }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button type="button" class="recommendation-nav-btn next" aria-label="Scroll right in {{ section_title }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="product-horizontal-row">
+    {% include "product/partials/product_card.html" with products=products %}
+  </div>
+</section>
+{% endif %}

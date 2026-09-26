@@ -61,6 +61,10 @@
         <a href="{% url 'products' %}" class="nav-link {% if request.resolver_match.url_name == 'products' %}active{% endif %}">Catalog</a>
         <a href="{% url 'category_page' %}" class="nav-link {% if request.resolver_match.url_name == 'category_page' %}active{% endif %}">Categories</a>
         <a href="{% url 'coupons:coupon_list' %}" class="nav-link {% if 'coupon' in request.path %}active{% endif %}">Offers</a>
+        <a href="{% url 'ai_assistant' %}" class="nav-link {% if 'ai' in request.path %}active{% endif %}" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+          <span>Ask AI</span>
+        </a>
         <a href="{% url 'chat:customer_chat' %}" class="nav-link {% if 'chat' in request.path %}active{% endif %}">Concierge</a>
       </nav>
 
@@ -199,6 +203,7 @@
       <a href="{% url 'products' %}" class="mobile-nav-link">All Products</a>
       <a href="{% url 'category_page' %}" class="mobile-nav-link">Browse Categories</a>
       <a href="{% url 'coupons:coupon_list' %}" class="mobile-nav-link">Offers & Coupons</a>
+      <a href="{% url 'ai_assistant' %}" class="mobile-nav-link" style="color: var(--accent); font-weight: 700;">✨ Ask AI Assistant</a>
       <a href="{% url 'chat:customer_chat' %}" class="mobile-nav-link">Concierge Support</a>
       <a href="{% url 'wishlist' %}" class="mobile-nav-link">My Wishlist</a>
       <a href="{% url 'cart' %}" class="mobile-nav-link">Shopping Cart ({{ cart_count|default:0 }})</a>
@@ -315,12 +320,14 @@
     </div>
   </footer>
 
-  <!-- Floating Live Support Widget -->
-  <a href="{% url 'chat:customer_chat' %}" class="floating-chat-launcher" title="Chat with Concierge" aria-label="Live Chat Support">
-    <span class="launcher-pulse"></span>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <span class="launcher-label" style="font-size: 13px; font-weight: 600;">Support <strong>Concierge</strong></span>
+  <!-- Floating AI Assistant Launcher (Right-side positioned) -->
+  <a href="{% url 'ai_assistant' %}" class="floating-chat-launcher" style="left: auto; right: 24px; bottom: 24px; background: linear-gradient(135deg, #1e4bd8, #0b0d12); color: #fff; box-shadow: 0 4px 18px rgba(30, 75, 216, 0.4); text-decoration: none;" title="Shop with STORE AI Assistant" aria-label="AI Shopping Assistant">
+    <span class="launcher-pulse" style="background: #10b981;"></span>
+    <span style="font-size: 15px;">✨</span>
+    <span class="launcher-label" style="font-size: 13px; font-weight: 600; color: #fff;">Ask <strong>AI Assistant</strong></span>
   </a>
+
+ 
 
   <!-- Global Scripts (Mobile Drawer & Toast Auto-Dismiss) -->
   <script>

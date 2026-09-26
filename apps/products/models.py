@@ -138,6 +138,13 @@ class Product(models.Model):
         null=True
     )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["is_active", "-id"]),
+            models.Index(fields=["is_active", "brand"]),
+            models.Index(fields=["is_active", "-created_at"]),
+        ]
+
     def __str__(self):
         return self.name
 
@@ -162,13 +169,29 @@ class Product(models.Model):
 
     @property
     def default_variant(self):
+        if hasattr(self, '_default_variant'):
+            return self._default_variant
+        if hasattr(self, '_prefetched_objects_cache') and 'variants' in self._prefetched_objects_cache:
+            for variant in self.variants.all():
+                if variant.is_active:
+                    return variant
+            return None
         return self.variants.filter(
             is_active=True
         ).first()
 
     @property
+    def first_category(self):
+        if hasattr(self, '_first_category'):
+            return self._first_category
+        if hasattr(self, '_prefetched_objects_cache') and 'cat' in self._prefetched_objects_cache:
+            cats = self.cat.all()
+            return cats[0] if cats else None
+        return self.cat.first()
+
+    @property
     def price(self):
-        if hasattr(self, '_price'):
+        if hasattr(self, '_price') and self._price is not None:
             return self._price
         variant = self.default_variant
         return variant.price if variant else None
@@ -179,8 +202,11 @@ class Product(models.Model):
 
     @property
     def min_price(self):
-        if hasattr(self, '_min_price'):
+        if hasattr(self, '_min_price') and self._min_price is not None:
             return self._min_price
+        if hasattr(self, '_prefetched_objects_cache') and 'variants' in self._prefetched_objects_cache:
+            prices = [v.price for v in self.variants.all() if v.is_active and v.price is not None]
+            return min(prices) if prices else None
         prices = self.variants.filter(
             is_active=True
         ).values_list(
@@ -195,8 +221,11 @@ class Product(models.Model):
 
     @property
     def max_price(self):
-        if hasattr(self, '_max_price'):
+        if hasattr(self, '_max_price') and self._max_price is not None:
             return self._max_price
+        if hasattr(self, '_prefetched_objects_cache') and 'variants' in self._prefetched_objects_cache:
+            prices = [v.price for v in self.variants.all() if v.is_active and v.price is not None]
+            return max(prices) if prices else None
         prices = self.variants.filter(
             is_active=True
         ).values_list(
@@ -211,14 +240,22 @@ class Product(models.Model):
 
     @property
     def in_stock(self):
+        if hasattr(self, '_in_stock') and self._in_stock is not None:
+            return self._in_stock
+        if hasattr(self, '_prefetched_objects_cache') and 'variants' in self._prefetched_objects_cache:
+            active_variants = [v for v in self.variants.all() if v.is_active]
+            for variant in active_variants:
+                if hasattr(variant, "stock") and variant.stock:
+                    if variant.stock.available_quantity > 0:
+                        return True
+            return len(active_variants) > 0
 
         variants = self.variants.filter(
             is_active=True
         )
 
         for variant in variants:
-
-            if hasattr(variant, "stock"):
+            if hasattr(variant, "stock") and variant.stock:
                 if variant.stock.available_quantity > 0:
                     return True
 
@@ -226,6 +263,18 @@ class Product(models.Model):
 
     @property
     def average_rating(self):
+        if hasattr(self, '_avg_rating') and self._avg_rating is not None:
+            return round(float(self._avg_rating), 1)
+        if hasattr(self, '_average_rating') and self._average_rating is not None:
+            return round(float(self._average_rating), 1)
+        if hasattr(self, '_prefetched_objects_cache') and 'reviews' in self._prefetched_objects_cache:
+            reviews = self.reviews.all()
+            if not reviews:
+                return 5.0
+            return round(
+                sum(r.rating for r in reviews) / len(reviews),
+                1
+            )
 
         reviews = self.reviews.all()
 
@@ -239,6 +288,10 @@ class Product(models.Model):
 
     @property
     def review_count(self):
+        if hasattr(self, '_review_count') and self._review_count is not None:
+            return self._review_count
+        if hasattr(self, '_prefetched_objects_cache') and 'reviews' in self._prefetched_objects_cache:
+            return len(self.reviews.all())
         return self.reviews.count()
 
 
@@ -352,6 +405,12 @@ class ProductVariant(models.Model):
             return self.stock.available_quantity > 0
 
         return True
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["product", "is_active"]),
+            models.Index(fields=["is_active", "price"]),
+        ]
 
 
 # =========================================================
@@ -501,6 +560,16 @@ class Review(models.Model):
             f"{self.user.username} - "
             f"{prod_name} ({self.rating}★)"
         )
+
+    @property
+    def comment(self):
+        return self.product_review
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["product", "rating"]),
+            models.Index(fields=["product", "user"]),
+        ]
 
 
 # =========================================================

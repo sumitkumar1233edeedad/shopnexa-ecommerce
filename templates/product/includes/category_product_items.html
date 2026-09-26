@@ -32,7 +32,7 @@
   <div class="product-card-body">
     
     <div class="product-card-meta">
-      {% with cat=product.cat.first %}
+      {% with cat=product.first_category %}
         <span class="product-card-cat">{{ cat.name|default:"General" }}</span>
       {% endwith %}
 
@@ -53,7 +53,7 @@
       {% elif product.price %}
         <span class="product-price-current">₹{{ product.price }}</span>
       {% else %}
-        {% with variant=product.variants.first %}
+        {% with variant=product.default_variant %}
           {% if variant %}
             <span class="product-price-current">₹{{ variant.price }}</span>
           {% else %}

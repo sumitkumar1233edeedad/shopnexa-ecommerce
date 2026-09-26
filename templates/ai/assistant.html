@@ -1,0 +1,947 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Shopping Assistant | STORE AI{% endblock %}
+
+{% block extra_head %}
+<!-- Marked.js for fast, safe markdown and table rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+  :root {
+    --ai-primary: #0b0d12;
+    --ai-accent: #1e4bd8;
+    --ai-accent-hover: #153eba;
+    --ai-accent-light: #eff4fe;
+    --ai-accent-glow: rgba(30, 75, 216, 0.15);
+    --ai-surface: #ffffff;
+    --ai-bg: #f8fafc;
+    --ai-border: #e2e8f0;
+    --ai-border-subtle: #edf2f7;
+    --ai-text-primary: #0f172a;
+    --ai-text-muted: #64748b;
+    --ai-text-light: #94a3b8;
+    --ai-green: #10b981;
+    --ai-green-light: #ecfdf5;
+  }
+
+  .ai-assistant-page {
+    max-width: 1180px;
+    margin: 20px auto 60px;
+    padding: 0 16px;
+    font-family: var(--font-body, 'Inter', -apple-system, sans-serif);
+  }
+
+  /* Header Section */
+  .ai-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--ai-border);
+  }
+
+  .ai-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ai-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ai-text-light);
+  }
+
+  .ai-breadcrumb a {
+    color: var(--ai-text-muted);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .ai-breadcrumb a:hover {
+    color: var(--ai-accent);
+  }
+
+  .ai-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ai-header-title h1 {
+    font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--ai-text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .ai-provider-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #eff4fe, #dbeafe);
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e40af;
+    letter-spacing: 0.02em;
+  }
+
+  .ai-pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: aiPulse 2s infinite;
+  }
+
+  @keyframes aiPulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+  }
+
+  .ai-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-ai-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--ai-border);
+    background: var(--ai-surface);
+    color: var(--ai-text-primary);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-ai-action:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: var(--ai-accent);
+  }
+
+  /* Chat Container Card */
+  .ai-chat-card {
+    background: var(--ai-surface);
+    border: 1px solid var(--ai-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    height: 76vh;
+    min-height: 580px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Chat Scroll Stream */
+  .ai-chat-stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 12%);
+    scroll-behavior: smooth;
+  }
+
+  .ai-chat-stream::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .ai-chat-stream::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 999px;
+  }
+
+  /* Welcome Banner */
+  .ai-welcome-box {
+    margin: 8px auto 16px;
+    max-width: 740px;
+    text-align: center;
+    padding: 28px 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  }
+
+  .ai-avatar-large {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #1e4bd8, #0b0d12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 24px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 16px rgba(30, 75, 216, 0.25);
+  }
+
+  .ai-welcome-title {
+    font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ai-text-primary);
+    margin-bottom: 6px;
+  }
+
+  .ai-welcome-desc {
+    font-size: 14px;
+    color: var(--ai-text-muted);
+    max-width: 580px;
+    margin: 0 auto 18px;
+    line-height: 1.5;
+  }
+
+  .ai-chip-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .ai-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ai-text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .ai-chip:hover {
+    background: #eff4fe;
+    border-color: #bfdbfe;
+    color: var(--ai-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(30, 75, 216, 0.12);
+  }
+
+  /* Message Rows */
+  .ai-msg-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    animation: fadeInMsg 0.25s ease-out;
+  }
+
+  @keyframes fadeInMsg {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .ai-msg-row.ai-msg-user {
+    flex-direction: row-reverse;
+  }
+
+  .ai-msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .ai-avatar-assistant {
+    background: linear-gradient(135deg, #1e4bd8, #0b0d12);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(30, 75, 216, 0.2);
+  }
+
+  .ai-avatar-user {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  .ai-msg-content-wrapper {
+    max-width: 82%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ai-msg-user .ai-msg-content-wrapper {
+    align-items: flex-end;
+  }
+
+  .ai-bubble {
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  .ai-bubble-user {
+    background: linear-gradient(135deg, #1e4bd8, #153eba);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 12px rgba(30, 75, 216, 0.2);
+  }
+
+  .ai-bubble-assistant {
+    background: #ffffff;
+    color: var(--ai-text-primary);
+    border: 1px solid var(--ai-border);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Markdown Formatting in Assistant Bubbles */
+  .ai-bubble-assistant p {
+    margin: 0 0 10px 0;
+  }
+
+  .ai-bubble-assistant p:last-child {
+    margin-bottom: 0;
+  }
+
+  .ai-bubble-assistant strong {
+    font-weight: 700;
+    color: #0b0d12;
+  }
+
+  .ai-bubble-assistant ul, .ai-bubble-assistant ol {
+    margin: 6px 0 12px 20px;
+    padding: 0;
+  }
+
+  .ai-bubble-assistant li {
+    margin-bottom: 4px;
+  }
+
+  /* Markdown Tables */
+  .ai-bubble-assistant table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+    background: #fdfdfd;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .ai-bubble-assistant th {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid #cbd5e1;
+  }
+
+  .ai-bubble-assistant td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+  }
+
+  .ai-bubble-assistant tr:last-child td {
+    border-bottom: none;
+  }
+
+  .ai-bubble-assistant tr:nth-child(even) {
+    background: #f8fafc;
+  }
+
+  .ai-bubble-assistant code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #0f172a;
+    font-family: monospace;
+  }
+
+  .ai-bubble-assistant a {
+    color: var(--ai-accent);
+    text-decoration: underline;
+    font-weight: 600;
+  }
+
+  .ai-msg-time {
+    font-size: 11px;
+    color: var(--ai-text-light);
+    margin-top: 2px;
+    padding: 0 4px;
+  }
+
+  /* Product Action Pill Container */
+  .ai-product-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .ai-product-action-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #15803d;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .ai-product-action-pill:hover {
+    background: #dcfce7;
+    border-color: #86efac;
+    transform: translateY(-1px);
+  }
+
+  /* Typing Indicator */
+  .ai-typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid var(--ai-border);
+    border-radius: 12px;
+    width: fit-content;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .ai-typing-dots {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ai-dot {
+    width: 6px;
+    height: 6px;
+    background: #1e4bd8;
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite ease-in-out both;
+  }
+
+  .ai-dot:nth-child(1) { animation-delay: -0.32s; }
+  .ai-dot:nth-child(2) { animation-delay: -0.16s; }
+
+  @keyframes typingBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  .ai-typing-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ai-text-muted);
+  }
+
+  /* Chat Input Dock */
+  .ai-chat-dock {
+    padding: 14px 20px;
+    background: #ffffff;
+    border-top: 1px solid var(--ai-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ai-quick-prompts-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .ai-quick-prompts-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ai-mini-chip {
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: var(--ai-text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .ai-mini-chip:hover {
+    background: #eff4fe;
+    border-color: #bfdbfe;
+    color: var(--ai-accent);
+  }
+
+  .ai-input-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 6px 10px 6px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .ai-input-form:focus-within {
+    border-color: var(--ai-accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(30, 75, 216, 0.1);
+  }
+
+  .ai-input-field {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--ai-text-primary);
+    outline: none;
+    resize: none;
+    max-height: 120px;
+    min-height: 24px;
+    line-height: 1.4;
+    font-family: inherit;
+  }
+
+  .ai-btn-send {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--ai-accent);
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .ai-btn-send:hover:not(:disabled) {
+    background: var(--ai-accent-hover);
+    transform: scale(1.04);
+  }
+
+  .ai-btn-send:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .ai-chat-card {
+      height: calc(100vh - 180px);
+      min-height: 480px;
+      border-radius: 12px;
+    }
+    .ai-chat-stream {
+      padding: 16px;
+    }
+    .ai-msg-content-wrapper {
+      max-width: 90%;
+    }
+    .ai-welcome-box {
+      padding: 20px 16px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-assistant-page">
+
+  <!-- Header Section -->
+  <div class="ai-page-header">
+    <div class="ai-header-left">
+      <div class="ai-breadcrumb">
+        <a href="{% url 'home' %}">Store</a>
+        <span>/</span>
+        <span style="color: var(--ai-text-primary); font-weight: 600;">AI Shopping Assistant</span>
+      </div>
+      <div class="ai-header-title">
+        <h1>STORE AI Concierge</h1>
+        <span class="ai-provider-badge">
+          <span class="ai-pulse-dot"></span>
+          <span>Groq Powered ({{ groq_model }})</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="ai-header-actions">
+      <button type="button" class="btn-ai-action" id="btnClearChat" title="Reset conversation">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        <span>Reset Chat</span>
+      </button>
+
+      <a href="{% url 'cart' %}" class="btn-ai-action">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+          <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+        </svg>
+        <span>Cart</span>
+      </a>
+
+      <a href="{% url 'wishlist' %}" class="btn-ai-action">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+        </svg>
+        <span>Wishlist</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Chat Container -->
+  <div class="ai-chat-card">
+
+    <!-- Messages Stream -->
+    <div class="ai-chat-stream" id="chatStream">
+
+      <!-- Initial Welcome Card -->
+      <div class="ai-welcome-box" id="welcomeBox">
+        <div class="ai-avatar-large">✨</div>
+        <div class="ai-welcome-title">Hello, {{ first_name }}! How can I help you shop today?</div>
+        <div class="ai-welcome-desc">
+          I am your autonomous shopping assistant. I dynamically check live warehouse inventory, compare prices, manage your cart, and track orders with sub-second Groq inference.
+        </div>
+        <div class="ai-chip-suggestions">
+          <button type="button" class="ai-chip" onclick="sendQuickPrompt('Find Nike shoes under ₹5000 in stock')">
+            👟 Nike shoes under ₹5,000
+          </button>
+          <button type="button" class="ai-chip" onclick="sendQuickPrompt('What items are in my cart right now?')">
+            🛒 Check my cart
+          </button>
+          <button type="button" class="ai-chip" onclick="sendQuickPrompt('Show me what is in my wishlist')">
+            💖 My saved wishlist
+          </button>
+          <button type="button" class="ai-chip" onclick="sendQuickPrompt('Track my latest order status')">
+            📦 Track recent orders
+          </button>
+          <button type="button" class="ai-chip" onclick="sendQuickPrompt('Show electronics or laptops with discounts')">
+            💻 Deals & Electronics
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages dynamically appended here -->
+
+      <!-- Typing Indicator -->
+      <div class="ai-msg-row" id="typingRow" style="display: none;">
+        <div class="ai-msg-avatar ai-avatar-assistant">AI</div>
+        <div class="ai-typing-indicator" id="typingIndicator" style="display: flex;">
+          <div class="ai-typing-dots">
+            <div class="ai-dot"></div>
+            <div class="ai-dot"></div>
+            <div class="ai-dot"></div>
+          </div>
+          <span class="ai-typing-text">STORE AI is checking inventory & reasoning...</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chat Dock / Input -->
+    <div class="ai-chat-dock">
+      
+      <!-- Mini Quick Prompts -->
+      <div class="ai-quick-prompts-bar">
+        <span class="ai-mini-chip" onclick="sendQuickPrompt('Find running shoes under ₹3000')">👟 Running Shoes</span>
+        <span class="ai-mini-chip" onclick="sendQuickPrompt('Show all active coupon discounts')">🏷️ Active Offers</span>
+        <span class="ai-mini-chip" onclick="sendQuickPrompt('Add the cheapest one to my cart')">🛒 Add cheapest to cart</span>
+        <span class="ai-mini-chip" onclick="sendQuickPrompt('What is the stock status of that shoe?')">📦 Stock check</span>
+      </div>
+
+      <!-- Input Form -->
+      <form class="ai-input-form" id="aiChatForm" onsubmit="handleChatSubmit(event)">
+        {% csrf_token %}
+        <textarea 
+          class="ai-input-field" 
+          id="chatInput" 
+          rows="1" 
+          placeholder="Ask anything... (e.g., 'Find Nike shoes under ₹5000', 'Add to cart', 'Check order #1')"
+          autocomplete="off"
+        ></textarea>
+        <button type="submit" class="ai-btn-send" id="btnSend" title="Send message">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Assistant Client-Side Engine -->
+<script>
+  let chatHistory = [];
+  let isSending = false;
+
+  const chatStream = document.getElementById("chatStream");
+  const chatInput = document.getElementById("chatInput");
+  const btnSend = document.getElementById("btnSend");
+  const typingRow = document.getElementById("typingRow");
+  const welcomeBox = document.getElementById("welcomeBox");
+  const btnClearChat = document.getElementById("btnClearChat");
+
+  // Get CSRF Token from cookie or DOM
+  function getCsrfToken() {
+    const input = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (input) return input.value;
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+    return cookie ? decodeURIComponent(cookie.split('=')[1]) : '';
+  }
+
+  // Format Time (HH:MM AM/PM)
+  function formatCurrentTime() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Scroll stream smoothly to bottom
+  function scrollToBottom() {
+    setTimeout(() => {
+      chatStream.scrollTop = chatStream.scrollHeight;
+    }, 40);
+  }
+
+  // Render Markdown safely into HTML
+  function renderMarkdown(content) {
+    if (window.marked && typeof window.marked.parse === 'function') {
+      try {
+        return window.marked.parse(content);
+      } catch (e) {
+        console.warn("Marked parse error:", e);
+      }
+    }
+    // Fallback: Basic table & format parser
+    let html = content
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+    return html;
+  }
+
+  // Detect product slugs and add quick link pills
+  function extractProductActionPills(text) {
+    const slugMatches = text.matchAll(/slug:\s*`?([a-z0-9-]+)`?/gi);
+    const slugs = new Set();
+    for (const match of slugMatches) {
+      if (match[1] && match[1].length > 3) {
+        slugs.add(match[1]);
+      }
+    }
+
+    if (slugs.size === 0) return '';
+
+    let pillsHtml = '<div class="ai-product-actions">';
+    slugs.forEach(slug => {
+      pillsHtml += `
+        <a href="/product/${slug}/" target="_blank" class="ai-product-action-pill" title="View product details">
+          🛍️ View "${slug}"
+        </a>
+      `;
+    });
+    pillsHtml += '</div>';
+    return pillsHtml;
+  }
+
+  // Append a message bubble to the stream
+  function appendMessage(role, text) {
+    if (welcomeBox) {
+      welcomeBox.style.display = 'none';
+    }
+
+    const row = document.createElement("div");
+    row.className = `ai-msg-row ${role === 'user' ? 'ai-msg-user' : 'ai-msg-assistant'}`;
+
+    const avatar = document.createElement("div");
+    avatar.className = `ai-msg-avatar ${role === 'user' ? 'ai-avatar-user' : 'ai-avatar-assistant'}`;
+    avatar.textContent = role === 'user' ? 'You' : 'AI';
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "ai-msg-content-wrapper";
+
+    const bubble = document.createElement("div");
+    bubble.className = `ai-bubble ${role === 'user' ? 'ai-bubble-user' : 'ai-bubble-assistant'}`;
+
+    if (role === 'user') {
+      bubble.textContent = text;
+    } else {
+      bubble.innerHTML = renderMarkdown(text);
+      const actionPills = extractProductActionPills(text);
+      if (actionPills) {
+        bubble.innerHTML += actionPills;
+      }
+    }
+
+    const time = document.createElement("div");
+    time.className = "ai-msg-time";
+    time.textContent = formatCurrentTime();
+
+    wrapper.appendChild(bubble);
+    wrapper.appendChild(time);
+
+    row.appendChild(avatar);
+    row.appendChild(wrapper);
+
+    // Insert before typingRow
+    chatStream.insertBefore(row, typingRow);
+    scrollToBottom();
+  }
+
+  // Show / Hide Typing Indicator
+  function setTyping(loading) {
+    isSending = loading;
+    btnSend.disabled = loading;
+    typingRow.style.display = loading ? 'flex' : 'none';
+    if (loading) {
+      chatStream.appendChild(typingRow);
+      scrollToBottom();
+    }
+  }
+
+  // Send message to backend
+  async function sendMessage(text) {
+    if (!text || !text.trim() || isSending) return;
+
+    const trimmed = text.trim();
+    chatInput.value = "";
+    autoResizeTextarea();
+
+    // 1. Append User Bubble
+    appendMessage("user", trimmed);
+
+    // 2. Add to local history
+    chatHistory.push({ role: "user", content: trimmed });
+
+    // 3. Show typing indicator
+    setTyping(true);
+
+    try {
+      const response = await fetch("/api/ai/chat/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+        body: JSON.stringify({
+          message: trimmed,
+          chat_history: chatHistory.slice(-10), // Send last 10 messages for conversational context
+        }),
+      });
+
+      const data = await response.json();
+      setTyping(false);
+
+      if (response.ok && data.response) {
+        appendMessage("assistant", data.response);
+        chatHistory.push({ role: "assistant", content: data.response });
+      } else {
+        const errorMsg = data.error || "Unable to complete request. Please try again.";
+        appendMessage("assistant", `⚠️ **Notice:** ${errorMsg}`);
+      }
+    } catch (err) {
+      setTyping(false);
+      appendMessage("assistant", `⚠️ **Network Error:** Could not reach the AI service. Please verify your connection.`);
+    }
+
+    chatInput.focus();
+  }
+
+  // Form submit handler
+  function handleChatSubmit(e) {
+    e.preventDefault();
+    sendMessage(chatInput.value);
+  }
+
+  // Quick Prompt chip handler
+  function sendQuickPrompt(promptText) {
+    chatInput.value = promptText;
+    sendMessage(promptText);
+  }
+
+  // Auto-resize input textarea
+  function autoResizeTextarea() {
+    chatInput.style.height = "auto";
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + "px";
+  }
+
+  chatInput.addEventListener("input", autoResizeTextarea);
+
+  // Handle Enter (send) vs Shift+Enter (new line)
+  chatInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSubmit(e);
+    }
+  });
+
+  // Reset conversation button
+  btnClearChat.addEventListener("click", function() {
+    if (confirm("Reset conversation and clear chat history?")) {
+      chatHistory = [];
+      const messages = chatStream.querySelectorAll(".ai-msg-row:not(#typingRow)");
+      messages.forEach(msg => msg.remove());
+      if (welcomeBox) welcomeBox.style.display = "block";
+      chatInput.value = "";
+      autoResizeTextarea();
+      chatInput.focus();
+    }
+  });
+
+  // Focus input on page load
+  window.addEventListener("DOMContentLoaded", function() {
+    chatInput.focus();
+  });
+</script>
+{% endblock %}

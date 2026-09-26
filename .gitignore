@@ -36,3 +36,10 @@ media/
 # OS files
 Thumbs.db
 .DS_Store
+
+.dockerignore
+docker-compose.yml
+Dockerfile
+postgres_backup.sqlite3
+RUNINING.md
+datadump_postgrass.json

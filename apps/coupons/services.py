@@ -92,7 +92,13 @@ def get_user_weekly_coupon_info(user, coupon=None, dt=None):
     }
 
 
-def validate_coupon_for_user(coupon_code, user, order_amount, dt=None):
+def validate_coupon_for_user(
+    coupon_code,
+    user,
+    order_amount,
+    dt=None,
+    coupon=None,
+):
     """
     Validates a coupon for an order following the strict validation order:
     1. User is authenticated.

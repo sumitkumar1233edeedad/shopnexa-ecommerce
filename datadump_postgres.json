@@ -12,9 +12,9 @@
     "is_active": true,
     "date_joined": "2026-09-15T10:46:25.022Z",
     "email": "admin123@gmail.com",
-    "is_email_verified": false,
+    "is_email_verified": true,
     "temp_otp": null,
-    "is_activated": false,
+    "is_activated": true,
     "otp_created_at": null,
     "groups": [],
     "user_permissions": []
@@ -24,21 +24,27 @@
   "model": "accounts.customuser",
   "fields": {
     "password": "pbkdf2_sha256$1500000$zrK3zr3Y0psq4yGJI1pdOd$QAemX1Hoo5m493QawME7hKpK65j/HIt53bxmBPTn7W8=",
-    "last_login": "2026-09-18T02:46:46.004Z",
+    "last_login": "2026-09-23T05:30:36.270Z",
     "is_superuser": false,
     "username": "sumitkumar",
     "first_name": "sumit",
     "last_name": "kumar",
-    "is_staff": false,
+    "is_staff": true,
     "is_active": true,
     "date_joined": "2026-09-15T11:19:18.138Z",
     "email": "sumitsohal963@gmail.com",
-    "is_email_verified": false,
+    "is_email_verified": true,
     "temp_otp": null,
-    "is_activated": false,
+    "is_activated": true,
     "otp_created_at": null,
     "groups": [],
-    "user_permissions": []
+    "user_permissions": [
+      [
+        "view_order",
+        "order",
+        "order"
+      ]
+    ]
   }
 },
 {
@@ -54,9 +60,9 @@
     "is_active": true,
     "date_joined": "2026-09-15T11:43:59.886Z",
     "email": "vanshsohal2505@gmail.com",
-    "is_email_verified": false,
+    "is_email_verified": true,
     "temp_otp": null,
-    "is_activated": false,
+    "is_activated": true,
     "otp_created_at": null,
     "groups": [],
     "user_permissions": []
@@ -75,17 +81,75 @@
     "is_active": true,
     "date_joined": "2026-09-16T12:17:48.942Z",
     "email": "xzpsdybljmkbensizl@vtmpj.net",
-    "is_email_verified": false,
+    "is_email_verified": true,
     "temp_otp": null,
-    "is_activated": false,
+    "is_activated": true,
     "otp_created_at": null,
     "groups": [],
     "user_permissions": []
   }
 },
 {
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$0x68YwFx7fZrFaWh7fVa8f$kuBJvyCVd4gro87fKwcgO3goz5Spab6ga1BQf4uTpHA=",
+    "last_login": "2026-09-22T11:23:10.974Z",
+    "is_superuser": true,
+    "username": "admin1234",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-09-22T11:11:26.595Z",
+    "email": "admin1234@gmail.com",
+    "is_email_verified": false,
+    "temp_otp": "444161",
+    "is_activated": false,
+    "otp_created_at": "2026-09-24T03:27:54.989Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.customuser",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$xsy8lIW84BnpcTn26asvS2$3hP60p/AELvav2jE4YPtQgKPS0SrgP4vUsXnbtfNC8I=",
+    "last_login": "2026-09-22T13:33:10.146Z",
+    "is_superuser": false,
+    "username": "testuser",
+    "first_name": "",
+    "last_name": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-09-22T12:42:31.169Z",
+    "email": "wikato5769@art2mart.com",
+    "is_email_verified": true,
+    "temp_otp": null,
+    "is_activated": true,
+    "otp_created_at": null,
+    "groups": [],
+    "user_permissions": [
+      [
+        "change_order",
+        "order",
+        "order"
+      ],
+      [
+        "view_order",
+        "order",
+        "order"
+      ],
+      [
+        "view_review",
+        "products",
+        "review"
+      ]
+    ]
+  }
+},
+{
   "model": "accounts.profile",
-  "pk": 1,
+  "pk": 2,
   "fields": {
     "name": [
       "sumitkumar"
@@ -100,59 +164,35 @@
   "pk": 3,
   "fields": {
     "name": [
-      "vanshsohal"
+      "testuser"
     ],
     "phone": null,
     "profile_picture": "default/x.jpg",
-    "slug": "vanshsohal"
-  }
-},
-{
-  "model": "accounts.profile",
-  "pk": 4,
-  "fields": {
-    "name": [
-      "test"
-    ],
-    "phone": null,
-    "profile_picture": "default/x.jpg",
-    "slug": "test"
+    "slug": "testuser"
   }
 },
 {
   "model": "accounts.address",
-  "pk": 1,
+  "pk": 2,
   "fields": {
     "user": [
       "sumitkumar"
     ],
-    "name": "vansh",
+    "name": "sumit",
     "phone": "7590951315",
-    "pincode": "160059",
+    "pincode": "160055",
     "locality": "",
-    "address_line": "1226, RohtakVibe, Sector 60",
+    "address_line": "Sector 72",
     "city": "Mohali",
     "state": "Punjab",
     "landmark": "",
     "address_type": "HOME",
     "is_default": false,
-    "latitude": "30.7124147",
-    "longitude": "76.7142919",
-    "area": "Sector 60",
-    "formatted_address": "1226, RohtakVibe, Sector 60, Mohali, S.A.S. Nagar (Mohali) Tahsil, Sahibzada Ajit Singh Nagar, Punjab, 160059, India",
-    "slug": "vansh-mohali-160059"
-  }
-},
-{
-  "model": "accounts.wishlist",
-  "pk": 1,
-  "fields": {
-    "user": [
-      "sumitkumar"
-    ],
-    "product": 8,
-    "created_at": "2026-09-16T07:09:31.198Z",
-    "slug": "sumitkumar-apple-iphone-16-pro"
+    "latitude": "30.7130812",
+    "longitude": "76.7093965",
+    "area": "Sector 72",
+    "formatted_address": "Sector 72, Mohali, S.A.S. Nagar (Mohali) Tahsil, Sahibzada Ajit Singh Nagar, Punjab, 160055, India",
+    "slug": "sumit-mohali-160055"
   }
 },
 {
@@ -249,7 +289,7 @@
     "description": "Premium cotton black T-shirt with a comfortable regular fit, suitable for everyday casual wear.",
     "brand": "UrbanStyle",
     "is_active": true,
-    "created_at": "2026-09-15T10:54:22.783Z",
+    "created_at": "2026-09-22T07:30:21.034Z",
     "cat": [
       1
     ]
@@ -265,7 +305,7 @@
     "description": "Elegant white casual shirt made with lightweight fabric for a clean and comfortable appearance.",
     "brand": "Protonic",
     "is_active": true,
-    "created_at": "2026-09-15T10:56:49.560Z",
+    "created_at": "2026-09-22T07:30:21.045Z",
     "cat": [
       2
     ]
@@ -281,7 +321,7 @@
     "description": "Lightweight running shoes designed for daily training, jogging and comfortable long-distance runs.",
     "brand": "Nike",
     "is_active": true,
-    "created_at": "2026-09-15T10:58:41.331Z",
+    "created_at": "2026-09-22T07:30:21.051Z",
     "cat": [
       4
     ]
@@ -297,7 +337,7 @@
     "description": "Comfortable sports shoes featuring a cushioned sole for running, workouts and everyday activities.",
     "brand": "Adidas",
     "is_active": true,
-    "created_at": "2026-09-15T10:59:39.758Z",
+    "created_at": "2026-09-22T07:30:21.059Z",
     "cat": [
       4
     ]
@@ -313,7 +353,7 @@
     "description": "Classic slim-fit blue jeans made from comfortable stretch denim, suitable for everyday casual wear.",
     "brand": "DenimCo",
     "is_active": true,
-    "created_at": "2026-09-15T11:01:02.086Z",
+    "created_at": "2026-09-22T07:30:21.066Z",
     "cat": [
       3
     ]
@@ -329,7 +369,7 @@
     "description": "Modern dark-blue skinny jeans featuring a stretchable denim fabric and a comfortable tapered fit.",
     "brand": "UrbanDenim",
     "is_active": true,
-    "created_at": "2026-09-15T11:02:43.847Z",
+    "created_at": "2026-09-22T07:30:21.073Z",
     "cat": [
       3
     ]
@@ -345,7 +385,7 @@
     "description": "The Apple iPhone 16 Pro features a titanium design, powerful A18 Pro chip, advanced camera system, and a Super Retina XDR display.",
     "brand": "Apple",
     "is_active": true,
-    "created_at": "2026-09-16T06:29:45.186Z",
+    "created_at": "2026-09-22T07:30:21.082Z",
     "cat": [
       6
     ]
@@ -486,7 +526,7 @@
   "pk": 1,
   "fields": {
     "variant": 1,
-    "quantity": 24,
+    "quantity": 22,
     "reserved_quantity": 0,
     "slug": "stock-dark-blue-skinny-jeans-dark-blue-28-dbsj-28-blu"
   }
@@ -516,7 +556,7 @@
   "pk": 4,
   "fields": {
     "variant": 4,
-    "quantity": 35,
+    "quantity": 34,
     "reserved_quantity": 0,
     "slug": "stock-classic-slim-fit-jeans-blue-30-csfj-30-blu"
   }
@@ -588,7 +628,7 @@
     "product": 8,
     "image": "media/product/gallery/iphone16_4_xpzlug",
     "alt_text": "",
-    "created_at": "2026-09-16T07:38:34.984Z"
+    "created_at": "2026-09-22T07:30:21.309Z"
   }
 },
 {
@@ -598,7 +638,7 @@
     "product": 8,
     "image": "media/product/gallery/iphone16_2_nyejkz",
     "alt_text": "",
-    "created_at": "2026-09-16T07:38:35.828Z"
+    "created_at": "2026-09-22T07:30:21.318Z"
   }
 },
 {
@@ -608,7 +648,7 @@
     "product": 8,
     "image": "media/product/gallery/iphone16_5_gashsw",
     "alt_text": "",
-    "created_at": "2026-09-16T07:38:36.587Z"
+    "created_at": "2026-09-22T07:30:21.329Z"
   }
 },
 {
@@ -618,7 +658,7 @@
     "product": 8,
     "image": "media/product/gallery/iphone16_3_fchtq3",
     "alt_text": "",
-    "created_at": "2026-09-16T07:38:37.405Z"
+    "created_at": "2026-09-22T07:30:21.335Z"
   }
 },
 {
@@ -628,7 +668,7 @@
     "product": 5,
     "image": "media/product/gallery/jean_2_k5w2wx",
     "alt_text": "",
-    "created_at": "2026-09-16T08:50:19.678Z"
+    "created_at": "2026-09-22T07:30:21.345Z"
   }
 },
 {
@@ -638,18 +678,7 @@
     "product": 5,
     "image": "media/product/gallery/jean_3_oamexy",
     "alt_text": "",
-    "created_at": "2026-09-16T08:50:20.901Z"
-  }
-},
-{
-  "model": "cart.cart",
-  "pk": 1,
-  "fields": {
-    "user": [
-      "vanshsohal"
-    ],
-    "created_at": "2026-09-16T02:52:36.948Z",
-    "slug": "vanshsohal-cart"
+    "created_at": "2026-09-22T07:30:21.351Z"
   }
 },
 {
@@ -659,7 +688,7 @@
     "user": [
       "sumitkumar"
     ],
-    "created_at": "2026-09-18T02:11:38.797Z",
+    "created_at": "2026-09-22T07:35:11.084Z",
     "slug": "sumitkumar-cart"
   }
 },
@@ -681,8 +710,8 @@
     "shipping_city": "Mohali",
     "shipping_pincode": "160059",
     "shipping_address": "1226, RohtakVibe, Sector 60, Mohali, Punjab - 160059",
-    "created_at": "2026-09-18T02:13:02.347Z",
-    "updated_at": "2026-09-18T02:13:02.347Z"
+    "created_at": "2026-09-22T07:30:21.458Z",
+    "updated_at": "2026-09-22T07:30:21.458Z"
   }
 },
 {
@@ -703,8 +732,52 @@
     "shipping_city": "Mohali",
     "shipping_pincode": "160059",
     "shipping_address": "1226, RohtakVibe, Sector 60, Mohali, Punjab - 160059",
-    "created_at": "2026-09-18T02:41:53.507Z",
-    "updated_at": "2026-09-18T02:41:53.507Z"
+    "created_at": "2026-09-22T07:30:21.470Z",
+    "updated_at": "2026-09-22T07:30:21.470Z"
+  }
+},
+{
+  "model": "order.order",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order_number": "ORD-202609220736-1C8F80",
+    "slug": "order-ord-202609220736-1c8f80",
+    "status": "pending_payment",
+    "total_amount": "4297.00",
+    "coupon": null,
+    "discount_amount": "0.00",
+    "shipping_name": "sumit",
+    "shipping_phone": "7590951315",
+    "shipping_city": "Mohali",
+    "shipping_pincode": "160055",
+    "shipping_address": "Sector 72, Mohali, Punjab - 160055",
+    "created_at": "2026-09-22T07:36:38.383Z",
+    "updated_at": "2026-09-22T07:36:38.383Z"
+  }
+},
+{
+  "model": "order.order",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order_number": "ORD-202609220737-F68E88",
+    "slug": "order-ord-202609220737-f68e88",
+    "status": "delivered",
+    "total_amount": "4297.00",
+    "coupon": null,
+    "discount_amount": "0.00",
+    "shipping_name": "sumit",
+    "shipping_phone": "7590951315",
+    "shipping_city": "Mohali",
+    "shipping_pincode": "160055",
+    "shipping_address": "Sector 72, Mohali, Punjab - 160055",
+    "created_at": "2026-09-22T07:37:10.916Z",
+    "updated_at": "2026-09-22T13:26:51.076Z"
   }
 },
 {
@@ -730,6 +803,50 @@
   }
 },
 {
+  "model": "order.orderitem",
+  "pk": 3,
+  "fields": {
+    "order": 3,
+    "variant": 1,
+    "quantity": 2,
+    "price": "1499.00",
+    "slug": "ord-202609220736-1c8f80-dark-blue-skinny-jeans-dbsj-28-blu"
+  }
+},
+{
+  "model": "order.orderitem",
+  "pk": 4,
+  "fields": {
+    "order": 3,
+    "variant": 4,
+    "quantity": 1,
+    "price": "1299.00",
+    "slug": "ord-202609220736-1c8f80-classic-slim-fit-jeans-csfj-30-blu"
+  }
+},
+{
+  "model": "order.orderitem",
+  "pk": 5,
+  "fields": {
+    "order": 4,
+    "variant": 1,
+    "quantity": 2,
+    "price": "1499.00",
+    "slug": "ord-202609220737-f68e88-dark-blue-skinny-jeans-dbsj-28-blu"
+  }
+},
+{
+  "model": "order.orderitem",
+  "pk": 6,
+  "fields": {
+    "order": 4,
+    "variant": 4,
+    "quantity": 1,
+    "price": "1299.00",
+    "slug": "ord-202609220737-f68e88-classic-slim-fit-jeans-csfj-30-blu"
+  }
+},
+{
   "model": "payment.payment",
   "pk": 1,
   "fields": {
@@ -746,8 +863,8 @@
     "amount": "1499.00",
     "status": "pending",
     "paid_at": null,
-    "created_at": "2026-09-18T02:13:04.542Z",
-    "updated_at": "2026-09-18T02:13:04.542Z",
+    "created_at": "2026-09-22T07:30:21.502Z",
+    "updated_at": "2026-09-22T07:30:21.502Z",
     "slug": "ord-202609180213-924e34-online"
   }
 },
@@ -768,9 +885,53 @@
     "amount": "1499.00",
     "status": "completed",
     "paid_at": "2026-09-18T02:57:06.875Z",
-    "created_at": "2026-09-18T02:41:56.767Z",
-    "updated_at": "2026-09-18T02:57:06.875Z",
+    "created_at": "2026-09-22T07:30:21.513Z",
+    "updated_at": "2026-09-22T07:30:21.513Z",
     "slug": "ord-202609180241-042b65-online"
+  }
+},
+{
+  "model": "payment.payment",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order": 3,
+    "payment_method": "online",
+    "transaction_id": null,
+    "gateway_order_id": "order_Tf0D6iUjvpfIro",
+    "gateway_payment_id": null,
+    "gateway_signature": null,
+    "currency": "INR",
+    "amount": "4297.00",
+    "status": "pending",
+    "paid_at": null,
+    "created_at": "2026-09-22T07:36:39.341Z",
+    "updated_at": "2026-09-22T07:36:39.341Z",
+    "slug": "ord-202609220736-1c8f80-online"
+  }
+},
+{
+  "model": "payment.payment",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "order": 4,
+    "payment_method": "cod",
+    "transaction_id": null,
+    "gateway_order_id": null,
+    "gateway_payment_id": null,
+    "gateway_signature": null,
+    "currency": "INR",
+    "amount": "4297.00",
+    "status": "pending",
+    "paid_at": null,
+    "created_at": "2026-09-22T07:37:10.958Z",
+    "updated_at": "2026-09-22T07:37:10.958Z",
+    "slug": "ord-202609220737-f68e88-cod"
   }
 },
 {
@@ -778,59 +939,20 @@
   "pk": 1,
   "fields": {
     "weekly_user_limit": 5,
-    "updated_at": "2026-09-16T02:52:37.000Z"
-  }
-},
-{
-  "model": "chat.conversation",
-  "pk": 1,
-  "fields": {
-    "user": [
-      "vanshsohal"
-    ],
-    "status": "open",
-    "slug": "ticket-vanshsohal-757b836f",
-    "created_at": "2026-09-15T11:55:51.674Z",
-    "updated_at": "2026-09-15T11:55:51.674Z"
+    "updated_at": "2026-09-22T07:35:15.804Z"
   }
 },
 {
   "model": "chat.conversation",
   "pk": 2,
-  "fields": {
-    "user": [
-      "vanshsohal"
-    ],
-    "status": "open",
-    "slug": "ticket-vanshsohal-43142b00",
-    "created_at": "2026-09-15T11:55:59.439Z",
-    "updated_at": "2026-09-16T02:51:42.911Z"
-  }
-},
-{
-  "model": "chat.conversation",
-  "pk": 3,
   "fields": {
     "user": [
       "sumitkumar"
     ],
     "status": "open",
-    "slug": "ticket-sumitkumar-de4acd47",
-    "created_at": "2026-09-16T06:14:48.922Z",
-    "updated_at": "2026-09-16T06:14:48.922Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 1,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "hy",
-    "is_read": true,
-    "created_at": "2026-09-16T01:58:46.658Z"
+    "slug": "ticket-sumitkumar-f25d6eac",
+    "created_at": "2026-09-22T12:00:35.335Z",
+    "updated_at": "2026-09-22T12:00:48.299Z"
   }
 },
 {
@@ -839,180 +961,41 @@
   "fields": {
     "conversation": 2,
     "sender": [
+      "sumitkumar"
+    ],
+    "message": "Can you help me check my order status?",
+    "is_read": false,
+    "created_at": "2026-09-22T12:00:48.288Z"
+  }
+},
+{
+  "model": "authtoken.token",
+  "pk": "1500c1b5079ce56aea1571846ac7ee4d16820aca",
+  "fields": {
+    "user": [
+      "sumitkumar"
+    ],
+    "created": "2026-09-23T05:44:52.427Z"
+  }
+},
+{
+  "model": "authtoken.token",
+  "pk": "2010029284121eef0ded4c5a6395bc3eee22e3b7",
+  "fields": {
+    "user": [
       "admin123"
     ],
-    "message": "ok",
-    "is_read": true,
-    "created_at": "2026-09-16T01:59:27.257Z"
+    "created": "2026-09-23T08:52:57.782Z"
   }
 },
 {
-  "model": "chat.message",
-  "pk": 3,
+  "model": "authtoken.token",
+  "pk": "3ba1d33027e2b443901e7ca0aaf655b906565cbb",
   "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
+    "user": [
+      "admin1234"
     ],
-    "message": "hy",
-    "is_read": true,
-    "created_at": "2026-09-16T02:09:09.733Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 4,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "hhh",
-    "is_read": true,
-    "created_at": "2026-09-16T02:35:59.209Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 5,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "h",
-    "is_read": true,
-    "created_at": "2026-09-16T02:41:53.606Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 6,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "admin123"
-    ],
-    "message": "j",
-    "is_read": true,
-    "created_at": "2026-09-16T02:41:59.363Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 7,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "k",
-    "is_read": true,
-    "created_at": "2026-09-16T02:42:01.602Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 8,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "l",
-    "is_read": true,
-    "created_at": "2026-09-16T02:42:04.671Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 9,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "admin123"
-    ],
-    "message": "m",
-    "is_read": true,
-    "created_at": "2026-09-16T02:42:06.976Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 10,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "hh",
-    "is_read": true,
-    "created_at": "2026-09-16T02:47:12.760Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 11,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "admin123"
-    ],
-    "message": "h",
-    "is_read": true,
-    "created_at": "2026-09-16T02:47:16.397Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 12,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "admin123"
-    ],
-    "message": "mm",
-    "is_read": true,
-    "created_at": "2026-09-16T02:47:42.963Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 13,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "kkk",
-    "is_read": true,
-    "created_at": "2026-09-16T02:47:47.150Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 14,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "vanshsohal"
-    ],
-    "message": "okkk\\\\",
-    "is_read": true,
-    "created_at": "2026-09-16T02:51:31.775Z"
-  }
-},
-{
-  "model": "chat.message",
-  "pk": 15,
-  "fields": {
-    "conversation": 2,
-    "sender": [
-      "admin123"
-    ],
-    "message": "Hello! How can our support team assist you today?",
-    "is_read": true,
-    "created_at": "2026-09-16T02:51:42.884Z"
+    "created": "2026-09-22T11:14:37.951Z"
   }
 }
 ]

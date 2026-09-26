@@ -213,7 +213,7 @@
           <!-- Body -->
           <div class="product-card-body">
             <div class="product-card-meta">
-              {% with cat=product.cat.first %}
+              {% with cat=product.first_category %}
                 <span class="product-card-cat">{{ cat.name|default:"Lifestyle" }}</span>
               {% endwith %}
               <div class="product-card-rating">

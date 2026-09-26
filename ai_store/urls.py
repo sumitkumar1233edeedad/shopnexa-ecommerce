@@ -78,9 +78,16 @@ urlpatterns = [
     path('api/', include('api_apps.payment_api.urls')),
     path('api/', include('api_apps.chat_api.urls')),
     path('api/', include('api_apps.admin_api.urls')),
+
+    ## AI Assistant (API & Web) ##
+    path('', include('ai.urls')),
 ]
 if settings.DEBUG:
+    urlpatterns += [
+        path("__debug__/", include("debug_toolbar.urls")),
+    ]
     urlpatterns += static(
         settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT
     )
+

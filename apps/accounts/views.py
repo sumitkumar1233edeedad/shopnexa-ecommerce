@@ -20,8 +20,10 @@ from apps.cart.views import *
 from apps.cart.utils import get_cart_count
 from decimal import Decimal
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-
+from django.db.models import Sum, Prefetch, Avg, Count, Min, Q, Value
+ 
+from django.db.models.functions import Coalesce
+from django.core.cache import cache
 
 # =========================================================
 # PASSWORD RESET VIEWS (FORGOT PASSWORD & CHANGE PASSWORD)
@@ -195,42 +197,46 @@ def change_password_view(request):
 
 
 
-
-
-
-
-
 def home(request):
-    products = (
+    active_variants_prefetch = Prefetch(
+        "variants",
+        queryset=ProductVariant.objects.filter(is_active=True).select_related("color", "stock")
+    )
+
+    products = list(
         Product.objects
         .filter(is_active=True)
-        .prefetch_related("cat", "variants__color", "variants__stock")
-        .order_by("-id")
-    )[:20]
-
-    latest_products = Product.objects.order_by("-created_at")[:3]
-
-    categories = Category.objects.all()
-
-    for category in categories:
-        category.first_product = (
-            Product.objects
-            .filter(cat=category)
-            .order_by("id")
-            .first()
+        .annotate(
+            _avg_rating=Coalesce(Avg("reviews__rating"), Value(5.0)),
+            _review_count=Count("reviews", distinct=True),
         )
+        .prefetch_related("cat", active_variants_prefetch)
+        .order_by("-id")[:20]
+    )
 
-    # Wishlist
+    latest_products = products[:3]  # still pending your confirmation on id/created_at ordering
+
+    categories = cache.get("home_categories_v1")
+    if categories is None:
+        categories = list(
+            Category.objects.annotate(
+                first_product_id=Min("product__id", filter=Q(product__is_active=True))
+            )
+        )
+        first_ids = [c.first_product_id for c in categories if c.first_product_id]
+        first_products = {
+            p.id: p for p in Product.objects.filter(id__in=first_ids).only("id", "name", "image", "slug")
+        }
+        for c in categories:
+            c.first_product = first_products.get(c.first_product_id)
+        cache.set("home_categories_v1", categories, 300)
+
     wishlist_product_ids = set()
-
     if request.user.is_authenticated:
         wishlist_product_ids = set(
-            WishList.objects
-            .filter(user=request.user)
-            .values_list("product_id", flat=True)
+            WishList.objects.filter(user=request.user).values_list("product_id", flat=True)
         )
 
-    # Cart count
     cart_count = get_cart_count(request)
 
     return render(request, "home.html", {
@@ -238,8 +244,8 @@ def home(request):
         "categories": categories,
         "wishlist_product_ids": wishlist_product_ids,
         "cart_count": cart_count,
-        'latest_products' : latest_products,
-                })
+        "latest_products": latest_products,
+    })
 
 
 def login_view(request):
@@ -263,20 +269,14 @@ def login_view(request):
 
         # 2. If user exists, check password
         if user_obj and user_obj.check_password(password):
-            # Check if email is NOT verified yet
-            is_verified = (
-                user_obj.is_active
-                and getattr(user_obj, "is_email_verified", True)
-                and getattr(user_obj, "is_activated", True)
-            )
+            # Check if email is NOT verified OR account is NOT activated
+            if not user_obj.is_email_verified or not user_obj.is_activated:
+                # Preserve intended destination in session
+                next_url = request.GET.get("next") or request.POST.get("next")
+                if next_url and not next_url.startswith("/login"):
+                    request.session["next_url"] = next_url
 
-            if not is_verified:
                 try:
-                    # Preserve intended destination in session
-                    next_url = request.GET.get("next") or request.POST.get("next")
-                    if next_url and not next_url.startswith("/login"):
-                        request.session["next_url"] = next_url
-
                     generate_and_send_otp(user_obj, purpose="registration")
                     request.session["otp_user_id"] = user_obj.id
                     messages.warning(
@@ -297,6 +297,8 @@ def login_view(request):
 
             if user is not None:
                 login(request, user)
+
+
                 merge_session_cart_to_user(request, user)
                 messages.success(request, f"Welcome back, {user.first_name or user.username}!")
 
@@ -632,7 +634,19 @@ def update_profile(request, slug=None):
 
 @login_required(login_url="login")
 def wishlist_view(request):
-    wishlist_items = WishList.objects.filter(user=request.user).select_related("product").order_by("-created_at")
+    wishlist_items = (
+        WishList.objects.filter(user=request.user)
+        .select_related("product")
+        .prefetch_related(
+            "product__cat",
+            "product__reviews",
+            Prefetch(
+                "product__variants",
+                queryset=ProductVariant.objects.filter(is_active=True).select_related("color", "stock")
+            )
+        )
+        .order_by("-created_at")
+    )
     return render(request, "accounts/wishlist.html", {
         "wishlist_items": wishlist_items,
     })

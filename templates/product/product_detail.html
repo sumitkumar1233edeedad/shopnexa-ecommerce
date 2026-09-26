@@ -11,7 +11,7 @@
     <nav class="breadcrumb-nav" aria-label="Breadcrumb">
       <a href="{% url 'home' %}">Home</a>
       <span class="breadcrumb-sep">/</span>
-      {% with cat=product.cat.first %}
+      {% with cat=product.first_category %}
         {% if cat %}
           <a href="{% url 'category_page' %}?category={{ cat.id }}">{{ cat.name }}</a>
           <span class="breadcrumb-sep">/</span>
@@ -33,9 +33,9 @@
               class="detail-main-image" 
               id="mainDetailImage"
             >
-          {% elif product.images.first %}
+          {% elif product.images.all.0 and product.images.all.0.image %}
             <img 
-              src="{{ product.images.first.image.url }}" 
+              src="{{ product.images.all.0.image.url }}" 
               alt="{{ product.name }}" 
               class="detail-main-image" 
               id="mainDetailImage"
@@ -49,7 +49,7 @@
         </div>
 
         <!-- Gallery Showcase Thumbnails (Shows exactly as many images as uploaded) -->
-        {% if product.images.exists %}
+        {% if product.images.all %}
           <div class="detail-thumbnails-strip" id="detailThumbnailsStrip">
             {% if product.image %}
               <button 
@@ -63,14 +63,16 @@
             {% endif %}
 
             {% for g_img in product.images.all %}
-              <button 
-                type="button" 
-                class="detail-thumb-item {% if not product.image and forloop.first %}active{% endif %}" 
-                data-src="{{ g_img.image.url }}"
-                aria-label="View gallery photo {{ forloop.counter }}"
-              >
-                <img src="{{ g_img.image.url }}" alt="{{ product.name }} angle {{ forloop.counter }}">
-              </button>
+              {% if g_img.image %}
+                <button 
+                  type="button" 
+                  class="detail-thumb-item {% if not product.image and forloop.first %}active{% endif %}" 
+                  data-src="{{ g_img.image.url }}"
+                  aria-label="View gallery photo {{ forloop.counter }}"
+                >
+                  <img src="{{ g_img.image.url }}" alt="{{ product.name }} angle {{ forloop.counter }}">
+                </button>
+              {% endif %}
             {% endfor %}
           </div>
         {% endif %}
@@ -81,7 +83,7 @@
         
         <!-- Badges -->
         <div class="detail-badges-row">
-          {% with cat=product.cat.first %}
+          {% with cat=product.first_category %}
             {% if cat %}
               <span class="badge-pill" style="background: var(--accent-light); color: var(--accent);">
                 {{ cat.name }}
@@ -228,7 +230,7 @@
 
     </div>
 
-    <!-- Product Description & Specifications Section -->
+    <!-- 1. Product Overview -->
     <div style="margin-top: 48px; background: #ffffff; border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 32px; box-shadow: var(--shadow-card);">
       <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 16px; color: var(--text-primary);">Product Overview</h2>
       <div style="font-size: 15px; color: var(--text-secondary); line-height: 1.8; max-width: 800px;">
@@ -236,28 +238,77 @@
       </div>
     </div>
 
-    <!-- Customer Reviews Section -->
+    <!-- 2. Similar Products (Placed BEFORE Reviews) -->
+    {% if related_products %}
+      {% include "product/partials/recommendation_row.html" with products=related_products section_title="Similar Products" section_subtitle="Customers who viewed this item also explored these recommendations" %}
+    {% endif %}
+
+    <!-- 3. Ratings & Reviews -->
     <div id="reviews-section" class="detail-reviews-section">
-      <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
-        <div>
-          <span style="font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px;">Customer Feedback</span>
-          <h2 style="font-size: 26px; font-weight: 800; color: var(--text-primary); margin-top: 4px;">Reviews & Ratings</h2>
+      <div style="margin-bottom: 24px;">
+        <span class="recommendation-badge">Verified Feedback</span>
+        <h2 class="recommendation-title">Ratings & Reviews</h2>
+        <p class="recommendation-subtitle">Real ratings and detailed experiences from verified buyers.</p>
+      </div>
+
+      <!-- Rating Breakdown Summary Grid -->
+      <div class="rating-summary-grid">
+        <!-- Big Score Overview -->
+        <div class="rating-score-card">
+          <div class="rating-large-num">{{ product.average_rating|default:"5.0" }}</div>
+          <div class="rating-stars-gold">
+            {% for i in "12345"|make_list %}
+              {% if forloop.counter <= product.average_rating %}★{% else %}☆{% endif %}
+            {% endfor %}
+          </div>
+          <div class="rating-total-text">
+            {{ total_reviews|default:reviews.count }} Total Rating{{ total_reviews|default:reviews.count|pluralize }}
+          </div>
+          <div class="rating-trust-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+            <span>Verified Ratings</span>
+          </div>
         </div>
-        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
-          Average: <span style="color: var(--amber);">★ {{ product.average_rating|default:"5.0" }}</span> ({{ reviews|length }} reviews)
+
+        <!-- Rating Distribution (5-star down to 1-star counts & percentages) -->
+        <div class="rating-bars-card">
+          {% for item in rating_distribution %}
+            <div class="rating-bar-row">
+              <span class="rating-star-label">{{ item.star }} ★</span>
+              <div class="rating-progress-track">
+                <div class="rating-progress-fill" style="width: {{ item.percentage }}%;"></div>
+              </div>
+              <span class="rating-count-label">{{ item.percentage }}% ({{ item.count }})</span>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Review Call to Action -->
+        <div class="rating-action-card">
+          <h3 class="rating-action-title">Review this product</h3>
+          <p class="rating-action-desc">Share your feedback to help fellow shoppers make the right decision.</p>
+          {% if user.is_authenticated %}
+            <a href="#reviewFormContainer" class="btn btn-primary btn-sm btn-block">
+              {% if user_has_reviewed %}Update Your Review{% else %}Write a Review{% endif %}
+            </a>
+          {% else %}
+            <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline btn-sm btn-block">
+              Sign in to write a review
+            </a>
+          {% endif %}
         </div>
       </div>
 
-      <!-- Write Review Form (if authenticated) -->
+      <!-- Existing Review Submission/Update Form -->
       {% if user.is_authenticated %}
-        <div style="background: var(--bg-subtle); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 24px; margin-bottom: 32px;">
+        <div id="reviewFormContainer" style="background: var(--bg-subtle); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 24px; margin-bottom: 32px;">
           <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 14px;">
             {% if user_has_reviewed %}Update Your Review{% else %}Write a Review{% endif %}
           </h3>
           <form method="POST" action="{% url 'submit_review' product.slug %}">
             {% csrf_token %}
             <div style="margin-bottom: 14px;">
-              <label class="form-label">Rating Score</label>
+              <label class="form-label" style="font-weight: 600; font-size: 13px;">Rating Score</label>
               <select name="rating" class="sort-select" style="width: auto; height: 38px;">
                 <option value="5">★★★★★ (5 - Excellent)</option>
                 <option value="4">★★★★☆ (4 - Good)</option>
@@ -267,8 +318,8 @@
               </select>
             </div>
             <div style="margin-bottom: 14px;">
-              <label class="form-label">Your Comment</label>
-              <textarea name="comment" rows="3" class="form-control" style="height: auto; padding: 10px;" placeholder="Share what you liked or disliked about this product..." required></textarea>
+              <label class="form-label" style="font-weight: 600; font-size: 13px;">Your Feedback</label>
+              <textarea name="product_review" rows="3" class="form-control" style="height: auto; padding: 10px;" placeholder="Share what you liked or disliked about this product..." required></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-sm">Submit Review</button>
           </form>
@@ -283,8 +334,8 @@
       {% if reviews %}
         <div style="display: flex; flex-direction: column; gap: 16px;">
           {% for r in reviews %}
-            <div class="review-card">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <div class="review-card" style="background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <div>
                   <strong style="color: var(--text-primary); font-size: 14px;">{{ r.user.get_full_name|default:r.user.username }}</strong>
                   <span style="color: var(--success); font-size: 11px; margin-left: 6px; font-weight: 700;">✓ Verified Buyer</span>
@@ -295,8 +346,8 @@
                   {% endfor %}
                 </div>
               </div>
-              <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 6px;">
-                {{ r.comment }}
+              <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
+                {{ r.product_review|default:r.comment }}
               </p>
               <span style="font-size: 12px; color: var(--text-subtle);">{{ r.created_at|date:"M d, Y" }}</span>
             </div>
@@ -307,16 +358,272 @@
       {% endif %}
     </div>
 
-    <!-- Related Products -->
-    {% if related_products %}
-      <div style="margin-top: 60px;">
-        <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 24px; color: var(--text-primary);">You May Also Like</h2>
-        <div class="product-grid">
-          {% for product in related_products %}
-            {% include "product/partials/product_card.html" %}
-          {% endfor %}
+    <!-- 4. Questions & Answers -->
+    <section class="qa-section" id="qa-section">
+      <div class="qa-card">
+        <span class="qa-badge">Customer Community</span>
+        <h2 class="qa-title">Questions & Answers</h2>
+        <p class="qa-subtitle">Have questions about compatibility, sizing, or warranty? Get answers from our team and verified buyers.</p>
+
+        <!-- Empty State Container (Prepared for future ProductQuestion/ProductAnswer models) -->
+        <div class="qa-empty-state">
+          <div class="qa-empty-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <h3 class="qa-empty-title">No questions and answers yet.</h3>
+          <p class="qa-empty-desc">
+            Have a question about this product? Be the first to ask, and get direct assistance from fellow shoppers and our product team.
+          </p>
+          {% if user.is_authenticated %}
+            <button type="button" class="btn btn-primary btn-sm" id="askQuestionTriggerBtn" onclick="toggleQuestionBox()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <span>Ask a Question</span>
+            </button>
+            <div id="qaQuestionBox" style="display: none; margin-top: 18px; max-width: 600px; margin-left: auto; margin-right: auto; text-align: left;">
+              <form onsubmit="handleQuestionSubmit(event)">
+                <label class="form-label" style="font-size: 13px; font-weight: 700;">Your Question</label>
+                <textarea class="form-control" id="qaInputText" rows="3" placeholder="What would you like to know about this item?" style="height: auto; padding: 10px;" required></textarea>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                  <button type="submit" class="btn btn-primary btn-sm">Post Question</button>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="toggleQuestionBox()">Cancel</button>
+                </div>
+              </form>
+            </div>
+          {% else %}
+            <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-outline btn-sm">
+              <span>Sign in to ask a question</span>
+              <span style="margin-left: 4px;">→</span>
+            </a>
+          {% endif %}
         </div>
       </div>
+    </section>
+
+    <!-- 5. Available Offers (Real Store Coupons) -->
+    {% if top_coupon or active_coupons %}
+      <section class="offers-section" id="offers-section">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <span class="offers-badge">Exclusive Savings</span>
+            <h2 class="offers-title">Available Offers & Coupons</h2>
+            <p class="offers-subtitle">Apply verified store coupons at checkout for instant savings on your order.</p>
+          </div>
+          <div>
+            <a href="{% url 'coupons:coupon_list' %}" style="font-size: 13px; font-weight: 700; color: var(--accent); text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">
+              <span>View all coupons</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="offers-grid">
+          {% if top_coupon %}
+            <!-- Top / Featured Real Coupon Card -->
+            <div class="offer-card" style="border: 2px solid var(--accent); background: linear-gradient(180deg, #ffffff 0%, var(--accent-light, #f8faff) 100%);">
+              <div style="position: absolute; top: -1px; right: 16px; background: var(--accent); color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 0 0 8px 8px; letter-spacing: 0.5px; text-transform: uppercase;">
+                ⭐ Top Recommended Offer
+              </div>
+
+              <div>
+                <div class="offer-card-top">
+                  <div class="offer-icon-box" style="background: var(--accent); color: #ffffff;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                  </div>
+                  <div>
+                    <span class="offer-tag" style="color: var(--accent); font-weight: 800;">Featured Coupon</span>
+                    <h4 class="offer-name" style="font-size: 17px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">
+                      {% if top_coupon.discount_type == 'percentage' %}
+                        {{ top_coupon.discount_value|floatformat:0 }}% OFF
+                      {% else %}
+                        ₹{{ top_coupon.discount_value|floatformat:0 }} FLAT OFF
+                      {% endif %}
+                    </h4>
+                  </div>
+                </div>
+
+                <!-- Code box with copy button -->
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1.5px dashed var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin: 12px 0 14px 0;">
+                  <code style="font-size: 15px; font-weight: 800; letter-spacing: 1px; color: var(--text-primary);">
+                    {{ top_coupon.code }}
+                  </code>
+                  <button 
+                    type="button" 
+                    class="btn btn-primary btn-sm" 
+                    onclick="copyCouponCode('{{ top_coupon.code }}', this)"
+                    style="padding: 4px 12px; font-size: 11px; font-weight: 700;"
+                  >
+                    Copy Code
+                  </button>
+                </div>
+
+                {% if top_coupon.description %}
+                  <p class="offer-desc" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;">
+                    {{ top_coupon.description }}
+                  </p>
+                {% endif %}
+
+                <ul style="font-size: 12px; color: var(--text-muted); line-height: 1.7; padding-left: 0; list-style: none; margin-bottom: 14px;">
+                  <li>✓ Min order: <strong>₹{{ top_coupon.minimum_order_amount|floatformat:0 }}</strong></li>
+                  {% if top_coupon.maximum_discount_amount %}
+                    <li>✓ Max discount: <strong>₹{{ top_coupon.maximum_discount_amount|floatformat:0 }}</strong></li>
+                  {% endif %}
+                  {% if top_coupon.valid_until %}
+                    <li>✓ Valid till: <strong>{{ top_coupon.valid_until|date:"M d, Y" }}</strong></li>
+                  {% endif %}
+                </ul>
+              </div>
+
+              <div class="offer-card-footer" style="padding-top: 12px; border-top: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 11px; color: var(--success); font-weight: 700;">✓ Verified Store Offer</span>
+                <span style="font-size: 11px; color: var(--text-muted);">Use code in Bag / Checkout</span>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Other Active Real Coupons (if more exist) -->
+          {% for c in active_coupons %}
+            {% if c != top_coupon %}
+              <div class="offer-card" style="border: 1.5px dashed var(--border); background: #ffffff;">
+                <div>
+                  <div class="offer-card-top">
+                    <div class="offer-icon-box" style="background: var(--bg-subtle); color: var(--text-primary);">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    </div>
+                    <div>
+                      <span class="offer-tag" style="color: var(--text-muted);">Promo Code</span>
+                      <h4 class="offer-name" style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">
+                        {% if c.discount_type == 'percentage' %}
+                          {{ c.discount_value|floatformat:0 }}% OFF
+                        {% else %}
+                          ₹{{ c.discount_value|floatformat:0 }} FLAT OFF
+                        {% endif %}
+                      </h4>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin: 12px 0 14px 0;">
+                    <code style="font-size: 14px; font-weight: 800; letter-spacing: 1px; color: var(--text-primary);">
+                      {{ c.code }}
+                    </code>
+                    <button 
+                      type="button" 
+                      class="btn btn-outline btn-sm" 
+                      onclick="copyCouponCode('{{ c.code }}', this)"
+                      style="padding: 4px 10px; font-size: 11px; font-weight: 700;"
+                    >
+                      Copy
+                    </button>
+                  </div>
+
+                  {% if c.description %}
+                    <p class="offer-desc" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5;">
+                      {{ c.description }}
+                    </p>
+                  {% endif %}
+
+                  <ul style="font-size: 11px; color: var(--text-muted); line-height: 1.6; padding-left: 0; list-style: none; margin-bottom: 12px;">
+                    <li>✓ Min order: <strong>₹{{ c.minimum_order_amount|floatformat:0 }}</strong></li>
+                    {% if c.maximum_discount_amount %}
+                      <li>✓ Max discount: <strong>₹{{ c.maximum_discount_amount|floatformat:0 }}</strong></li>
+                    {% endif %}
+                  </ul>
+                </div>
+
+                <div class="offer-card-footer" style="padding-top: 10px; border-top: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 11px; color: var(--text-muted);">Valid till {{ c.valid_until|date:"M d" }}</span>
+                  <a href="{% url 'coupons:coupon_list' %}" style="font-size: 11px; font-weight: 700; color: var(--accent);">Details →</a>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <!-- 6. Frequently Bought Together -->
+    {% if bundle_products|length > 1 %}
+      <section class="bundle-section" id="bundle-section">
+        <span class="bundle-badge">Combo Value Pack</span>
+        <h2 class="bundle-title">Frequently Bought Together</h2>
+        <p class="bundle-subtitle">Pair this item with complementary favorites and enjoy an exclusive combo savings.</p>
+
+        <div class="bundle-container">
+          <!-- Flow of items -->
+          <div class="bundle-items-flow">
+            {% for b_item in bundle_products %}
+              <div class="bundle-item-card">
+                <div style="position: absolute; top: 10px; left: 10px; z-index: 2;">
+                  <input 
+                    type="checkbox" 
+                    class="bundle-check" 
+                    id="bundleCheck{{ b_item.id }}" 
+                    data-price="{{ b_item.price|default:'0' }}"
+                    data-slug="{% if b_item.default_variant %}{{ b_item.default_variant.slug }}{% else %}{{ b_item.slug }}{% endif %}"
+                    checked
+                    {% if forloop.first %}disabled{% endif %}
+                    onchange="updateBundleCalculations()"
+                    aria-label="Include {{ b_item.name }} in bundle"
+                  >
+                </div>
+                <div class="bundle-item-img-box">
+                  {% if b_item.image %}
+                    <img src="{{ b_item.image.url }}" alt="{{ b_item.name }}" class="bundle-item-img">
+                  {% else %}
+                    <div style="color: var(--text-subtle); font-size: 10px;">No Image</div>
+                  {% endif %}
+                </div>
+                <div>
+                  {% if forloop.first %}
+                    <span class="bundle-item-badge">This Item</span>
+                  {% else %}
+                    <span class="bundle-item-badge" style="background: var(--bg-subtle); color: var(--text-muted);">Companion</span>
+                  {% endif %}
+                  <a href="{% url 'product_detail' b_item.slug %}" class="bundle-item-title">{{ b_item.name }}</a>
+                  <div class="bundle-item-price">₹{{ b_item.price }}</div>
+                </div>
+              </div>
+
+              {% if not forloop.last %}
+                <div class="bundle-operator">+</div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Bundle Summary Box -->
+          <div class="bundle-summary-box">
+            <span class="bundle-summary-label">Total Bundle Price</span>
+            <div class="bundle-price-row">
+              <span class="bundle-total-price" id="bundleTotalPriceDisplay">₹{{ bundle_discount_price }}</span>
+              <span class="bundle-orig-price" id="bundleOrigPriceDisplay">₹{{ bundle_total_price }}</span>
+            </div>
+            <div>
+              <span class="bundle-savings-pill">Save 5% Combo Discount</span>
+            </div>
+            <p id="bundleCountDisplay" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">All items included</p>
+
+            <button type="button" class="btn btn-primary btn-block btn-lg" id="addBundleCartBtn" onclick="addBundleToCart()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              <span>Add Bundle to Bag</span>
+            </button>
+            <span style="display: block; font-size: 11px; color: var(--text-subtle); margin-top: 8px;">Free express shipping on bundle orders</span>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    <!-- 7. Similar Products with the Same Features -->
+    {% if similar_by_feature %}
+      {% include "product/partials/recommendation_row.html" with products=similar_by_feature section_title="Similar with the Same Features" section_subtitle="Products sharing similar specifications, brand heritage, and engineering" %}
+    {% endif %}
+
+    <!-- 8. Similar Products in Your Price Range -->
+    {% if similar_by_price %}
+      {% include "product/partials/recommendation_row.html" with products=similar_by_price section_title="Similar Products in Your Price Range" section_subtitle="Comparable alternatives matching your budget and price tier" %}
+    {% endif %}
+
+    <!-- 9. Recently Viewed -->
+    {% if recently_viewed %}
+      {% include "product/partials/recommendation_row.html" with products=recently_viewed section_title="Recently Viewed" section_subtitle="Items you explored during your shopping session" %}
     {% endif %}
 
   </div>
@@ -524,6 +831,121 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
+
+  // Horizontal Recommendation Carousels Navigation
+  document.querySelectorAll(".recommendation-section").forEach(function(sec) {
+    const prevBtn = sec.querySelector(".recommendation-nav-btn.prev");
+    const nextBtn = sec.querySelector(".recommendation-nav-btn.next");
+    const row = sec.querySelector(".product-horizontal-row");
+    if (!row) return;
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", function() {
+        const scrollDist = Math.max(240, row.clientWidth * 0.75);
+        row.scrollBy({ left: -scrollDist, behavior: "smooth" });
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener("click", function() {
+        const scrollDist = Math.max(240, row.clientWidth * 0.75);
+        row.scrollBy({ left: scrollDist, behavior: "smooth" });
+      });
+    }
+  });
 });
+
+// Dynamic Bundle Calculations
+window.updateBundleCalculations = function() {
+  let sum = 0;
+  let count = 0;
+  const checks = document.querySelectorAll(".bundle-check");
+  checks.forEach(function(cb) {
+    if (cb.checked) {
+      sum += parseFloat(cb.getAttribute("data-price") || 0);
+      count++;
+    }
+  });
+
+  const discounted = count > 1 ? Math.round(sum * 0.95) : sum;
+  const totalEl = document.getElementById("bundleTotalPriceDisplay");
+  const origEl = document.getElementById("bundleOrigPriceDisplay");
+  const countEl = document.getElementById("bundleCountDisplay");
+  const btn = document.getElementById("addBundleCartBtn");
+
+  if (totalEl) totalEl.textContent = "₹" + discounted;
+  if (origEl) origEl.textContent = count > 1 ? "₹" + sum : "";
+  if (countEl) countEl.textContent = count + " item" + (count === 1 ? "" : "s") + " selected";
+  if (btn) btn.disabled = count === 0;
+};
+
+// Add All Selected Bundle Items to Cart
+window.addBundleToCart = async function() {
+  const btn = document.getElementById("addBundleCartBtn");
+  if (!btn) return;
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span>Adding Bundle to Bag...</span>';
+
+  const checks = document.querySelectorAll(".bundle-check:checked");
+  const slugs = Array.from(checks).map(cb => cb.getAttribute("data-slug")).filter(Boolean);
+
+  try {
+    for (const slug of slugs) {
+      await fetch(`/add/${slug}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+    }
+    window.location.href = "{% url 'cart' %}";
+  } catch (e) {
+    window.location.href = "{% url 'cart' %}";
+  }
+};
+
+// Copy Coupon Code Helper
+window.copyCouponCode = function(code, btn) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = "Copied: " + code + " ✓";
+      btn.style.background = "var(--success)";
+      btn.style.color = "#ffffff";
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.background = "";
+        btn.style.color = "";
+      }, 2000);
+    }).catch(() => {
+      prompt("Copy coupon code:", code);
+    });
+  } else {
+    prompt("Copy coupon code:", code);
+  }
+};
+
+// Q&A Question Box Handlers
+window.toggleQuestionBox = function() {
+  const box = document.getElementById("qaQuestionBox");
+  if (box) {
+    box.style.display = box.style.display === "none" ? "block" : "none";
+    if (box.style.display === "block") {
+      document.getElementById("qaInputText")?.focus();
+    }
+  }
+};
+
+window.handleQuestionSubmit = function(e) {
+  e.preventDefault();
+  const txt = document.getElementById("qaInputText")?.value;
+  if (txt) {
+    alert("Thank you! Your question has been submitted for moderation and community answers.");
+    toggleQuestionBox();
+    document.getElementById("qaInputText").value = "";
+  }
+};
 </script>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% for product in products %}
-<article class="product-card" id="product-card-{{ product.id }}">
+<article class="product-card product-list-card" id="product-card-{{ product.id }}">
 
   <!-- Product Media Container -->
   <div class="product-media">
@@ -67,7 +67,7 @@
     
     <!-- Meta Category & Rating -->
     <div class="product-card-meta">
-      {% with cat=product.cat.first %}
+      {% with cat=product.first_category %}
         <span class="product-card-cat">{{ cat.name|default:"General" }}</span>
       {% endwith %}
 
@@ -84,7 +84,7 @@
 
     <!-- Price -->
     <div class="product-card-price-row">
-      {% with variant=product.variants.first %}
+      {% with variant=product.default_variant %}
         {% if variant %}
           <span class="product-price-current">₹{{ variant.price }}</span>
         {% elif product.min_price and product.max_price %}

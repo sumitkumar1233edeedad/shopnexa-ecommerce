@@ -128,29 +128,29 @@ def _get_variant(variant_slug):
 # ============================================================
 # CART
 # ============================================================
-
 def cart(request):
-
     items = []
-    subtotal = 0
+    subtotal = Decimal("0.00")
 
-    # --------------------------------------------------------
+    # ============================================================
     # LOGGED-IN USER
-    # --------------------------------------------------------
+    # ============================================================
 
     if request.user.is_authenticated:
-
         cart_obj, _ = Cart.objects.get_or_create(
             user=request.user
         )
 
-        db_items = cart_obj.items.select_related(
-            "product__product",
-            "product__color"
-        ).all()
+        db_items = (
+            cart_obj.items
+            .select_related(
+                "product__product",
+                "product__color",
+            )
+            .all()
+        )
 
         for item in db_items:
-
             items.append({
                 "variant": item.product,
                 "product": item.product.product,
@@ -161,25 +161,29 @@ def cart(request):
 
             subtotal += item.total_price
 
-    # --------------------------------------------------------
+    # ============================================================
     # GUEST USER
-    # --------------------------------------------------------
+    # ============================================================
 
     else:
-
         session_cart = request.session.get("cart", {})
 
         for variant_slug, data in list(session_cart.items()):
 
-            variant = ProductVariant.objects.select_related(
-                "product",
-                "color"
-            ).filter(
-                slug=variant_slug,
-                is_active=True
-            ).first()
+            variant = (
+                ProductVariant.objects
+                .select_related(
+                    "product",
+                    "color",
+                )
+                .filter(
+                    slug=variant_slug,
+                    is_active=True,
+                )
+                .first()
+            )
 
-            # Remove invalid variant from session
+            # Remove invalid variant
             if not variant:
                 del session_cart[variant_slug]
                 request.session.modified = True
@@ -213,52 +217,148 @@ def cart(request):
 
             subtotal += line_total
 
-    # --------------------------------------------------------
-    # TOTALS & COUPONS
-    # --------------------------------------------------------
+    # ============================================================
+    # TOTALS
+    # ============================================================
 
     subtotal_dec = Decimal(str(subtotal))
-    applied_code = request.session.get("applied_coupon_code")
+
+    applied_code = request.session.get(
+        "applied_coupon_code"
+    )
+
     applied_coupon = None
     discount_amount = Decimal("0.00")
+    available_coupons = []
+    best_coupon = None
+    weekly_coupon_info = None
 
-    if request.user.is_authenticated and applied_code:
-        is_valid, _, coupon, discount = validate_coupon_for_user(
-            applied_code,
-            request.user,
-            subtotal_dec
-        )
-        if is_valid:
-            applied_coupon = coupon
-            discount_amount = discount
-        else:
-            request.session.pop("applied_coupon_code", None)
+    # ============================================================
+    # COUPONS
+    # ============================================================
 
-    discounted_subtotal = max(Decimal("0.00"), subtotal_dec - discount_amount)
-    shipping_fee = Decimal("0.00") if (subtotal_dec >= 500 or subtotal_dec == 0) else Decimal("50.00")
-    grand_total = discounted_subtotal + shipping_fee
-
-    available_coupons = (
-        get_available_coupons(request.user, subtotal_dec)
-        if request.user.is_authenticated
-        else get_available_coupons(None, subtotal_dec)
-    )
-    best_coupon = (
-        get_best_coupon_for_user(request.user, subtotal_dec)
-        if request.user.is_authenticated
-        else get_best_coupon_for_user(None, subtotal_dec)
-    )
-    weekly_coupon_info = (
-        get_user_weekly_coupon_info(request.user)
+    coupon_user = (
+        request.user
         if request.user.is_authenticated
         else None
     )
 
-    # Total quantity in cart
+    # ONLY ONE get_available_coupons() CALL
+    available_coupons = get_available_coupons(
+        user=coupon_user,
+        cart_amount=subtotal_dec,
+    )
+
+    # ============================================================
+    # FIND BEST COUPON FROM ALREADY LOADED COUPONS
+    # ============================================================
+
+    qualifying_coupons = [
+        coupon
+        for coupon in available_coupons
+        if (
+            getattr(coupon, "qualifies", False)
+            and getattr(
+                coupon,
+                "estimated_discount",
+                Decimal("0.00"),
+            ) > Decimal("0.00")
+        )
+    ]
+
+    if qualifying_coupons:
+        best_coupon = max(
+            qualifying_coupons,
+            key=lambda coupon: (
+                coupon.estimated_discount,
+                -coupon.minimum_order_amount,
+            ),
+        )
+
+    # ============================================================
+    # VALIDATE APPLIED COUPON
+    # ============================================================
+
+    if (
+        request.user.is_authenticated
+        and applied_code
+    ):
+        # Reuse coupon already fetched above.
+        applied_available_coupon = next(
+            (
+                coupon
+                for coupon in available_coupons
+                if coupon.code.lower()
+                == applied_code.strip().lower()
+            ),
+            None,
+        )
+
+        is_valid, error_message, coupon, discount = (
+            validate_coupon_for_user(
+                applied_code,
+                request.user,
+                subtotal_dec,
+                coupon=applied_available_coupon,
+            )
+        )
+
+        if is_valid:
+            applied_coupon = coupon
+            discount_amount = discount
+
+        else:
+            request.session.pop(
+                "applied_coupon_code",
+                None,
+            )
+
+    # ============================================================
+    # WEEKLY COUPON INFO
+    # ============================================================
+
+    if request.user.is_authenticated:
+        weekly_coupon_info = (
+            get_user_weekly_coupon_info(
+                request.user
+            )
+        )
+
+    # ============================================================
+    # SHIPPING
+    # ============================================================
+
+    discounted_subtotal = max(
+        Decimal("0.00"),
+        subtotal_dec - discount_amount,
+    )
+
+    shipping_fee = (
+        Decimal("0.00")
+        if (
+            subtotal_dec >= Decimal("500.00")
+            or subtotal_dec == Decimal("0.00")
+        )
+        else Decimal("50.00")
+    )
+
+    grand_total = (
+        discounted_subtotal
+        + shipping_fee
+    )
+
+    # ============================================================
+    # CART COUNT
+    # ============================================================
+
     cart_count = sum(
         item["quantity"]
         for item in items
     )
+
+    # ============================================================
+    # CONTEXT
+    # ============================================================
 
     context = {
         "items": items,
@@ -277,7 +377,7 @@ def cart(request):
     return render(
         request,
         "cart/cart.html",
-        context
+        context,
     )
 
 
