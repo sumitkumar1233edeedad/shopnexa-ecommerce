@@ -109,7 +109,7 @@ MIDDLEWARE = [
 
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
-    "ai_store.accounts.middleware.TimezoneMiddleware",
+    "ai_store.middleware.TimezoneMiddleware",
 ]
 
 
