@@ -1,43 +1,25 @@
 Django>=6.0,<7.0
-
-# ASGI / WebSockets
 daphne>=4.2.0
 channels>=4.3.0
-channels-redis>=4.3.0
-
-# Background tasks / Redis
+channels_redis>=4.3.0
 celery>=5.6.0
 redis>=8.1.0
-
-# PostgreSQL
 psycopg2-binary>=2.9.9
-dj-database-url>=2.1.0
-
-# Static files
-whitenoise>=6.9.0
-
-# Images / Cloudinary
-Pillow>=12.0.0
+pillow>=12.0.0
 cloudinary>=1.46.0
 django-cloudinary-storage>=0.3.0
-
-# Environment
 python-dotenv>=1.2.0
-
-# API
-djangorestframework>=3.15.0
-
-# Payment
 razorpay>=2.0.0
-
-# HTTP / timezone
 requests>=2.34.0
 tzlocal>=5.4.0
-
-# LangChain / LangGraph
+dj-database-url>=2.1.0
+whitenoise>=6.9.0
 langchain>=0.3.0
 langchain-core>=0.3.0
 langchain-community>=0.3.0
 langchain-openai>=0.2.0
 langchain-groq>=0.2.0
 langgraph>=0.2.0
+langchain-nvidia-ai-endpoints
+djangorestframework
+gunicorn>=23.0.0
